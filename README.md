@@ -58,7 +58,7 @@ WorkOps is a modern web application that transforms standard HR tasks into an in
 
 ### Core Framework
 - **React 17** - UI library
-- **Create React App** - Build tool
+- **Vite** - Build tool
 - **React Router v6** - Client-side routing
 
 ### State Management & Data
