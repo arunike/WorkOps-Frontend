@@ -1,0 +1,118 @@
+.comment_background {
+  /* border-radius: 20px; */
+  /* margin: 5px; */
+  height: 100%;
+  padding: 18px 18px 5px 18px;
+  /* background-color: rgb(235, 235, 235); */
+}
+.comment {
+  overflow-y: auto;
+  font-size: 0.8rem;
+  font-weight: 400;
+  max-height: 110px;
+  max-width: 100%;
+}
+.comment_giver {
+  padding-bottom: 0;
+  padding-top: 18px;
+}
+.TeamPlayer {
+  display: flex;
+  background-image: linear-gradient(
+    to right,
+    #6a359d,
+    #6a4eaf,
+    #6c64bf,
+    #7079cd,
+    #778ed9,
+    #709fe6,
+    #6aaff0,
+    #69bff8,
+    #52cffe,
+    #41dfff,
+    #46eefa,
+    #5ffbf1
+  );
+  min-height: 120px;
+  min-width: 200px;
+  color: azure;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  font-weight: 600;
+  margin: auto;
+  font-size: 1.5rem;
+}
+.Knowledge {
+  display: flex;
+  background-image: linear-gradient(
+    to right top,
+    #4a4ad6,
+    #0087ff,
+    #00b5ff,
+    #00ddf2,
+    #00ffd4
+  );
+  min-height: 120px;
+  min-width: 200px;
+  color: azure;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  font-weight: 600;
+  margin: auto;
+  font-size: 1.5rem;
+}
+.Hero {
+  display: flex;
+  background-image: linear-gradient(
+    to right bottom,
+    #e5e565,
+    #f9b251,
+    #f7815d,
+    #dc5873,
+    #aa4386
+  );
+  min-height: 120px;
+  min-width: 200px;
+  color: azure;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  font-weight: 600;
+  margin: auto;
+  font-size: 1.5rem;
+}
+.ThankYou {
+  display: flex;
+  background-image: linear-gradient(
+    to right bottom,
+    #721fde,
+    #ab00bc,
+    #c9009b,
+    #d12007,
+    #dc1865
+  );
+  min-height: 120px;
+  min-width: 200px;
+  color: azure;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  font-weight: 600;
+  margin: auto;
+  font-size: 1.5rem;
+}
+.Blank {
+  display: flex;
+  background-color: white;
+  min-height: 120px;
+  min-width: 200px;
+  color: azure;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  font-weight: 600;
+  margin: auto;
+  font-size: 1.5rem;
+}
