@@ -31,12 +31,27 @@ const ThanksCard = ({ thanksId, thanksData, userId }) => {
   const [likesAndComments, setLikesAndComments] = useState();
   const [Liked, setLiked] = useState(false);
 
-  const fromUser = GetAssociateDetails(thanksData.From);
-  const toUser = GetAssociateDetails(thanksData.To);
+  const fromUser = GetAssociateDetails(thanksData.from_id);
+  const toUser = GetAssociateDetails(thanksData.to_id);
   const [showSideMenu, setShowSideMenu] = useState(false);
 
   const toggleDrawer = (open) => {
     setShowSideMenu(open);
+  };
+
+  // Generate consistent gradient based on category name
+  const getCategoryGradient = (categoryName) => {
+    if (!categoryName) return 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+
+    let hash = 0;
+    for (let i = 0; i < categoryName.length; i++) {
+      hash = categoryName.charCodeAt(i) + ((hash << 5) - hash);
+    }
+
+    const hue1 = Math.abs(hash % 360);
+    const hue2 = Math.abs((hash * 2) % 360);
+
+    return `linear-gradient(135deg, hsl(${hue1}, 70%, 60%) 0%, hsl(${hue2}, 70%, 50%) 100%)`;
   };
 
   const getThanksLikesAndComments = async () => {
@@ -254,25 +269,25 @@ const ThanksCard = ({ thanksId, thanksData, userId }) => {
           </CardActions>
 
           <Box>
-            <div className={thanksData.Category}>
-              {/* <div className={thanksData.Category} style={{ minHeight: 80 }}> */}
-              {thanksData.Category === "TeamPlayer"
-                ? "Team Player 👍"
-                : thanksData.Category === "Hero" && toUser.Gender === "Male"
-                  ? "Superhero 🦸‍♂️"
-                  : thanksData.Category === "Hero" && toUser.Gender === "Female"
-                    ? "Superhero 🦸‍♀️"
-                    : thanksData.Category === "ThankYou"
-                      ? "Thank you! 🙏"
-                      : thanksData.Category === "Knowledge"
-                        ? "Knowledge 💡"
-                        : ""}
+            <div style={{
+              background: getCategoryGradient(thanksData.category),
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white',
+              fontSize: '20px',
+              fontWeight: 'bold',
+              padding: '20px',
+              minHeight: '80px',
+              textShadow: '2px 2px 4px rgba(0,0,0,0.3)'
+            }}>
+              {thanksData.category}
             </div>
           </Box>
           <Box>
             <>
               <div className="comment_background">
-                <div className="comment">{thanksData.Comment}</div>
+                <div className="comment">{thanksData.message}</div>
 
                 <div className="comment_giver">
                   <>
@@ -300,8 +315,8 @@ const ThanksCard = ({ thanksId, thanksData, userId }) => {
                               variant="h7"
                               sx={{ opacity: 0.5, paddingLeft: 1 }}
                             >
-                              {thanksData.Timestamp &&
-                                moment(thanksData.Timestamp)
+                              {thanksData.timestamp &&
+                                moment(thanksData.timestamp)
                                   .from(new Date())}
                             </Typography>
                           </Grid>

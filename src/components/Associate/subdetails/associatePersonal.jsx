@@ -23,7 +23,8 @@ import {
   updatedAssociateContext,
   departmentsContext,
 } from "../../../utils/context/contexts";
-import { useContext, useState } from "react";;
+import { useContext, useState, useEffect } from "react";
+import { useAuth } from "../../../utils/context/AuthContext";
 
 const AssociateInfo = ({ updateBackendAndState }) => {
   const { associateData, setAssociateData } = useContext(associateContext);
@@ -32,12 +33,48 @@ const AssociateInfo = ({ updateBackendAndState }) => {
   const { updatedAssociate, setUpdatedAssociate } = useContext(
     updatedAssociateContext
   );
+  const { userData } = useAuth();
   const [openPersonal, setOpenPersonal] = useState(true);
   const [openPostal, setOpenPostal] = useState(false);
   const [personalDisabled, setPersonalDisabled] = useState(true);
   const [postalDisabled, setPostalDisabled] = useState(true);
+  const [canEditRestrictedFields, setCanEditRestrictedFields] = useState(false);
 
   const CountriesArray = JSON.parse(JSON.stringify(Countries));
+
+  // Check if user can edit restricted fields
+  useEffect(() => {
+    const checkPermissions = async () => {
+      // If editing someone else's profile, allow (admin use case)
+      if (!userData || !associateData || parseInt(userData.id) !== parseInt(associateData.id)) {
+        setCanEditRestrictedFields(true);
+        return;
+      }
+
+      // User is editing their own profile - check permissions
+      try {
+        const response = await fetch('http://localhost:8081/settings/profile_edit_roles');
+        if (response.ok) {
+          const data = await response.json();
+          const allowedRoles = data.value || 'CEO,Head of People';
+          const roles = allowedRoles.split(',').map(r => r.trim());
+
+          // Check if user's title is in allowed roles
+          const hasPermission = roles.some(role =>
+            role.toLowerCase() === (userData.Title || '').toLowerCase()
+          );
+
+          setCanEditRestrictedFields(hasPermission);
+        } else {
+          setCanEditRestrictedFields(false);
+        }
+      } catch (error) {
+        setCanEditRestrictedFields(false);
+      }
+    };
+
+    checkPermissions();
+  }, [userData, associateData]);
 
   const onUpdate = async (event) => {
     if (event.target.name === "Salary") {
@@ -154,7 +191,7 @@ const AssociateInfo = ({ updateBackendAndState }) => {
               size="small"
               name="FirstName"
               label="First Name"
-              disabled={personalDisabled}
+              disabled={personalDisabled || !canEditRestrictedFields}
               sx={DisabledTextBox}
               defaultValue={associateData.FirstName}
               onChange={(e) => onUpdate(e)}
@@ -162,7 +199,7 @@ const AssociateInfo = ({ updateBackendAndState }) => {
           </Grid>
           <Grid item xs={8} xl={4}>
             <TextField
-              disabled={personalDisabled}
+              disabled={personalDisabled || !canEditRestrictedFields}
               style={{ width: "100%" }}
               size="small"
               variant="standard"
@@ -175,7 +212,7 @@ const AssociateInfo = ({ updateBackendAndState }) => {
           </Grid>
           <Grid item xs={12} xl={4}>
             <TextField
-              disabled={personalDisabled}
+              disabled={personalDisabled || !canEditRestrictedFields}
               style={{ width: "100%" }}
               size="small"
               variant="standard"
@@ -190,7 +227,7 @@ const AssociateInfo = ({ updateBackendAndState }) => {
             <Grid item sx={8} xm={4} xl={4}>
               <TextField
                 select
-                disabled={personalDisabled}
+                disabled={personalDisabled || !canEditRestrictedFields}
                 style={{ width: "100%" }}
                 name="Department"
                 variant="standard"
@@ -225,7 +262,7 @@ const AssociateInfo = ({ updateBackendAndState }) => {
           <Grid item xs={7} xl={4}>
             <TextField
               size="small"
-              disabled={personalDisabled}
+              disabled={personalDisabled || !canEditRestrictedFields}
               variant="standard"
               style={{ width: "100%" }}
               defaultValue={associateData.EmplStatus}
@@ -245,7 +282,7 @@ const AssociateInfo = ({ updateBackendAndState }) => {
           </Grid>
           <Grid item xs={12} xl={4}>
             <TextField
-              disabled={personalDisabled}
+              disabled={personalDisabled || !canEditRestrictedFields}
               variant="standard"
               style={{ width: "100%" }}
               size="small"
@@ -272,7 +309,7 @@ const AssociateInfo = ({ updateBackendAndState }) => {
           {allOffices && (
             <Grid item xs={5} xl={1}>
               <TextField
-                disabled={personalDisabled}
+                disabled={personalDisabled || !canEditRestrictedFields}
                 variant="standard"
                 size="small"
                 defaultValue={associateData.Office}
@@ -315,7 +352,7 @@ const AssociateInfo = ({ updateBackendAndState }) => {
               <LocalizationProvider dateAdapter={AdapterDateFns}>
                 <DatePicker
                   sx={DisabledTextBox}
-                  disabled={personalDisabled}
+                  disabled={personalDisabled || !canEditRestrictedFields}
                   variant="standard"
                   size="small"
                   label="Date of Birth"
@@ -345,7 +382,7 @@ const AssociateInfo = ({ updateBackendAndState }) => {
                 <DatePicker
                   sx={DisabledTextBox}
                   size="small"
-                  disabled={personalDisabled}
+                  disabled={personalDisabled || !canEditRestrictedFields}
                   label="Start Date"
                   name="StartDate"
                   value={updatedAssociate.StartDate.toDate()}
@@ -398,7 +435,7 @@ const AssociateInfo = ({ updateBackendAndState }) => {
           <Grid item xs={8} xl={4}>
             <TextField
               sx={DisabledTextBox}
-              disabled={personalDisabled}
+              disabled={personalDisabled || !canEditRestrictedFields}
               style={{ width: "100%" }}
               size="small"
               variant="standard"

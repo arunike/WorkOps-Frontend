@@ -113,7 +113,10 @@ const AssociateDetails = () => {
 
       const response = await fetch(`http://localhost:8081/associates/${associateData.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-User-ID': userData?.id?.toString() || ''
+        },
         body: JSON.stringify(payload)
       });
 
@@ -121,17 +124,9 @@ const AssociateDetails = () => {
         setUpdateAssociates((updateAssociates) => updateAssociates + 1);
         setAssociateData(updatedAssociate);
 
-        // If updating self, update AuthContext andLocalStorage
         if (userData && userData.id === updatedAssociate.id) {
-          // Update local storage
           const updatedUser = { ...userData, ...updatedAssociate };
 
-          // Fix date objects for storage if necessary (AuthContext expects objects but stores JSON)
-          // But updatedAssociate has Date objects for StartDate/DOB?
-          // backend payload needs strings, but internal state uses objects with toDate()
-          // AuthContext.js seems to handle hydration of StartDate.
-
-          // Just merge and save. AuthContext.js:46 saves 'user'.
           localStorage.setItem("user", JSON.stringify(updatedUser));
           setCurrentUser(updatedUser);
         }

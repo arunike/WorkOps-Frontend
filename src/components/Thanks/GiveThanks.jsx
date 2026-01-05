@@ -8,7 +8,7 @@ import {
   MenuItem,
   Typography,
 } from "@mui/material";
-import React, { useState, useRef, useCallback, useContext } from "react";
+import React, { useState, useRef, useCallback, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { associatesContext } from "../../utils/context/contexts";
 import ReactCanvasConfetti from "react-canvas-confetti";
@@ -20,6 +20,7 @@ const GiveThanks = () => {
   const { userData } = useAuth();
   const { associates } = useContext(associatesContext);
   const navigate = useNavigate();
+  const [categories, setCategories] = useState([]);
   const [giveThanksData, setGiveThanksData] = useState({
     Comment: undefined,
     To: undefined,
@@ -27,6 +28,21 @@ const GiveThanks = () => {
     Timestamp: new Date(),
     Category: undefined,
   });
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch("http://localhost:8081/thanks-categories");
+        if (response.ok) {
+          const data = await response.json();
+          setCategories(data || []);
+        }
+      } catch (error) {
+        console.error("Failed to fetch thanks categories", error);
+      }
+    };
+    fetchCategories();
+  }, []);
   const canvasStyles = {
     position: "fixed",
     pointerEvents: "none",
@@ -81,6 +97,22 @@ const GiveThanks = () => {
     });
   }, [makeShot]);
 
+  // Generate consistent gradient based on category name
+  const getCategoryGradient = (categoryName) => {
+    if (!categoryName) return 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+
+    // Use category name to seed random colors for consistency
+    let hash = 0;
+    for (let i = 0; i < categoryName.length; i++) {
+      hash = categoryName.charCodeAt(i) + ((hash << 5) - hash);
+    }
+
+    const hue1 = Math.abs(hash % 360);
+    const hue2 = Math.abs((hash * 2) % 360);
+
+    return `linear-gradient(135deg, hsl(${hue1}, 70%, 60%) 0%, hsl(${hue2}, 70%, 50%) 100%)`;
+  };
+
   const onSubmit = async () => {
     const payload = {
       from_id: parseInt(userData.id),
@@ -131,23 +163,32 @@ const GiveThanks = () => {
               <Card sx={{ width: { xs: 320, sm: 450, lg: 450 }, height: 500 }}>
                 {giveThanksData.Category !== undefined ? (
                   <div
-                    className={giveThanksData.Category}
-                    style={{ height: 140 }}
+                    style={{
+                      height: 140,
+                      background: getCategoryGradient(giveThanksData.Category),
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'white',
+                      fontSize: '24px',
+                      fontWeight: 'bold',
+                      textShadow: '2px 2px 4px rgba(0,0,0,0.3)'
+                    }}
                   >
-                    {giveThanksData.Category === "TeamPlayer"
-                      ? "Team Player 👍"
-                      : giveThanksData.Category === "Hero"
-                        ? "Superhero 🦸‍♂️"
-                        : giveThanksData.Category === "ThankYou"
-                          ? "Thank you! 🙏"
-                          : giveThanksData.Category === "Knowledge"
-                            ? "Knowledge 💡"
-                            : ""}
+                    {giveThanksData.Category}
                   </div>
                 ) : (
                   <div
-                    className="Blank"
-                    style={{ color: "black ", height: 140 }}
+                    style={{
+                      height: 140,
+                      background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#333',
+                      fontSize: '24px',
+                      fontWeight: 'bold'
+                    }}
                   >
                     Give Thanks
                   </div>
@@ -170,18 +211,11 @@ const GiveThanks = () => {
                         })
                       }
                     >
-                      <MenuItem key="Team Player" value="TeamPlayer">
-                        Team Player
-                      </MenuItem>
-                      <MenuItem key="Hero" value="Hero">
-                        Superhero
-                      </MenuItem>
-                      <MenuItem key="thank you" value="ThankYou">
-                        Thank You!
-                      </MenuItem>
-                      <MenuItem key="Knowledge" value="Knowledge">
-                        Knowledge
-                      </MenuItem>
+                      {categories.map((category) => (
+                        <MenuItem key={category.id} value={category.name}>
+                          {category.name}
+                        </MenuItem>
+                      ))}
                     </TextField>
                   </Grid>
 

@@ -15,6 +15,14 @@ import MenuPermissions from "../../components/Associate/Admin/MenuPermissions";
 import TaskConfiguration from "../../components/Associate/Admin/TaskConfiguration";
 import DefaultPasswordConfig from "../../components/Associate/Admin/DefaultPasswordConfig";
 import DashboardPermissionsConfig from "../../components/Associate/Admin/DashboardPermissionsConfig";
+import OvertimeConfig from "../../components/Associate/Admin/OvertimeConfig";
+import TimeOffConfig from "../../components/Associate/Admin/TimeOffConfig";
+import TimeEntryRecords from "../../components/Associate/Admin/TimeEntryRecords";
+import OvertimeRequests from "../../components/Associate/Admin/OvertimeRequests";
+import ThanksCategories from "../../components/Associate/Admin/ThanksCategories";
+import PTOConfig from "../../components/Associate/Admin/PTOConfig";
+import ProfileEditPermissions from "../../components/Associate/Admin/ProfileEditPermissions";
+import HolidayManagement from "../../components/Associate/Admin/HolidayManagement";
 import Page from "../../components/Page";
 
 const Admin = () => {
@@ -90,6 +98,25 @@ const Admin = () => {
               </AccordionSummary>
               <AccordionDetails>
                 <OfficesModify />
+              </AccordionDetails>
+            </Accordion>
+
+            <Accordion expanded={expanded === "panel3b"} onChange={handleChange("panel3b")}>
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+                aria-controls="panel3b-content"
+                id="panel3b-header"
+                sx={{ backgroundColor: "#eef0f2" }}
+              >
+                <Typography sx={{ width: "33%", flexShrink: 0 }}>
+                  Thanks Categories...
+                </Typography>
+                <Typography sx={{ color: "text.secondary" }}>
+                  Add, delete
+                </Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <ThanksCategories />
               </AccordionDetails>
             </Accordion>
 
@@ -170,6 +197,86 @@ const Admin = () => {
               </AccordionSummary>
               <AccordionDetails>
                 <DashboardPermissionsConfig />
+              </AccordionDetails>
+            </Accordion>
+
+            <Accordion expanded={expanded === "panel12"} onChange={handleChange("panel12")}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ backgroundColor: "#eef0f2" }}>
+                <Typography sx={{ width: "33%", flexShrink: 0 }}>Overtime Configuration</Typography>
+                <Typography sx={{ color: "text.secondary" }}>Manage overtime exemptions</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <OvertimeConfig />
+              </AccordionDetails>
+            </Accordion>
+
+            <Accordion expanded={expanded === "panel13"} onChange={handleChange("panel13")}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ backgroundColor: "#eef0f2" }}>
+                <Typography sx={{ width: "33%", flexShrink: 0 }}>Time Off Configuration</Typography>
+                <Typography sx={{ color: "text.secondary" }}>Manage time off exemptions</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <TimeOffConfig />
+              </AccordionDetails>
+            </Accordion>
+
+            <Accordion expanded={expanded === "panel14"} onChange={handleChange("panel14")}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ backgroundColor: "#eef0f2" }}>
+                <Typography sx={{ width: "33%", flexShrink: 0 }}>Time Entry Records</Typography>
+                <Typography sx={{ color: "text.secondary" }}>View all time entries</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <TimeEntryRecords />
+              </AccordionDetails>
+            </Accordion>
+
+            <Accordion expanded={expanded === "panel14b"} onChange={handleChange("panel14b")}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ backgroundColor: "#eef0f2" }}>
+                <Typography sx={{ width: "33%", flexShrink: 0 }}>PTO Configuration</Typography>
+                <Typography sx={{ color: "text.secondary" }}>Configure PTO accrual</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <PTOConfig />
+              </AccordionDetails>
+            </Accordion>
+
+            <Accordion expanded={expanded === "panel14c"} onChange={handleChange("panel14c")}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ backgroundColor: "#eef0f2" }}>
+                <Typography sx={{ width: "33%", flexShrink: 0 }}>Profile Edit Permissions</Typography>
+                <Typography sx={{ color: "text.secondary" }}>Control who can edit profiles</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <ProfileEditPermissions />
+              </AccordionDetails>
+            </Accordion>
+
+            <Accordion expanded={expanded === "panel15"} onChange={handleChange("panel15")}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ backgroundColor: "#eef0f2" }}>
+                <Typography sx={{ width: "33%", flexShrink: 0 }}>Overtime Requests</Typography>
+                <Typography sx={{ color: "text.secondary" }}>View overtime history</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <OvertimeRequests />
+              </AccordionDetails>
+            </Accordion>
+
+            <Accordion
+              expanded={expanded === "panel19"}
+              onChange={handleChange("panel19")}
+            >
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+                aria-controls="panel19bh-content"
+                id="panel19bh-header"
+                sx={{ backgroundColor: "#eef0f2" }}
+              >
+                <Typography sx={{ width: "33%", flexShrink: 0 }}>Holiday Management</Typography>
+                <Typography sx={{ color: "text.secondary" }}>
+                  Manage company holidays
+                </Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <HolidayManagement />
               </AccordionDetails>
             </Accordion>
           </Box>

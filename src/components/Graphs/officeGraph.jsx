@@ -11,22 +11,30 @@ import {
   associatesContext,
 } from "../../utils/context/contexts";
 
-const CHART_HEIGHT = 500;
+const CHART_HEIGHT = 400;
 const LEGEND_HEIGHT = 72;
 
 const ChartWrapperStyle = styled("div")(({ theme }) => ({
   height: CHART_HEIGHT,
-  marginTop: theme.spacing(1),
-  "& .apexcharts-canvas svg": { height: CHART_HEIGHT },
-  "& .apexcharts-canvas svg,.apexcharts-canvas foreignObject": {
+  marginTop: 4,
+  position: "relative",
+  "& .apexcharts-canvas": {
+    stroke: "none",
     overflow: "visible",
   },
   "& .apexcharts-legend": {
     height: LEGEND_HEIGHT,
     alignContent: "center",
-    position: "relative !important",
+    position: "absolute !important",
     borderTop: `solid 1px ${theme.palette.divider}`,
-    top: `calc(${CHART_HEIGHT - LEGEND_HEIGHT}px) !important`,
+    bottom: 0,
+    width: "100%",
+    display: "flex !important",
+    justifyContent: "flex-start",
+    paddingLeft: theme.spacing(3),
+    paddingBottom: theme.spacing(1),
+    alignItems: "flex-end",
+    marginBottom: theme.spacing(-4),
   },
 }));
 
@@ -61,7 +69,7 @@ export default function OfficeGraph() {
   const chartOptions = merge(BaseOptionChart(), {
     labels: OFFICES,
     stroke: { colors: [theme.palette.background.paper] },
-    legend: { floating: true, horizontalAlign: "center" },
+    legend: { floating: false, horizontalAlign: "center", position: "bottom" },
     dataLabels: { enabled: true, dropShadow: { enabled: true } },
     tooltip: {
       fillSeriesColor: false,
@@ -97,6 +105,7 @@ export default function OfficeGraph() {
             type="pie"
             series={officesData}
             options={chartOptions}
+            height={CHART_HEIGHT}
           />
         </ChartWrapperStyle>
       ) : (

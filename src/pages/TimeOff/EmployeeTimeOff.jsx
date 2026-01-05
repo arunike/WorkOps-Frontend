@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Calendar, dateFnsLocalizer } from "react-big-calendar";
-import format from "date-fns/format";
-import parse from "date-fns/parse";
-import startOfWeek from "date-fns/startOfWeek";
-import getDay from "date-fns/getDay";
-import enUS from "date-fns/locale/en-US";
+import { Calendar, momentLocalizer } from "react-big-calendar";
+import moment from "moment";
+import "react-big-calendar/lib/css/react-big-calendar.css";
 import {
     Card,
     Container,
@@ -13,61 +10,22 @@ import {
     Tabs,
     Box,
     Button,
-    Grid,
     TextField,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    Paper
+    Grid,
 } from "@mui/material";
 import { useAuth } from "../../utils/context/AuthContext";
+import PTOBalance from "../../components/TimeOff/PTOBalance";
+import { getApiDomain } from '../../utils/getApiDomain';
 
-const locales = {
-    "en-US": enUS,
-};
-
-const localizer = dateFnsLocalizer({
-    format,
-    parse,
-    startOfWeek,
-    getDay,
-    locales,
-});
-
-const federalHolidays = [
-    {
-        title: "New Year's Day",
-        allDay: true,
-        start: new Date(2025, 0, 1),
-        end: new Date(2025, 0, 1),
-        type: "holiday"
-    },
-    {
-        title: "Independence Day",
-        allDay: true,
-        start: new Date(2025, 6, 4),
-        end: new Date(2025, 6, 4),
-        type: "holiday"
-    },
-    {
-        title: "Christmas Day",
-        allDay: true,
-        start: new Date(2025, 11, 25),
-        end: new Date(2025, 11, 25),
-        type: "holiday"
-    },
-];
+const localizer = momentLocalizer(moment);
 
 const EmployeeTimeOff = () => {
     const { userData } = useAuth();
-    const [tabValue, setTabValue] = useState(0);
     const [myRequests, setMyRequests] = useState([]);
+    const [ptoData, setPtoData] = useState(null);
     const [newRequest, setNewRequest] = useState({ start: "", end: "", reason: "" });
-
-    const [totalPTO, setTotalPTO] = useState(0);
+    const [tabValue, setTabValue] = useState(0);
+    const [holidays, setHolidays] = useState([]);
 
     // Calculate business days between two dates
     const getBusinessDatesCount = (startDate, endDate) => {
@@ -79,56 +37,74 @@ const EmployeeTimeOff = () => {
             curDate.setDate(curDate.getDate() + 1);
         }
         return count;
-    }
+    };
 
-    useEffect(() => {
-        if (userData && userData.StartDate) {
-            const startDate = new Date(userData.StartDate.toDate()); 
-            const today = new Date();
-            const daysWorked = getBusinessDatesCount(startDate, today);
-
-            // Formula: (Days Worked / 365) * 20
-            // Note: 260 is approx business days in a year, user asked for "days worked / 365", 
-            // but usually "days worked" implies calendar days if dividing by 365. 
-            // If "days worked" implies business days, we should divide by ~260. 
-            // adhering to user request literally: (business days worked / 365) * 20 would be very low.
-            // Assuming "days the employee work" means tenure in days (calendar days) for the formula 
-            // OR "business days worked" / "business days in year".
-            // Let's stick to the user's specific text: "accumlated base on the number of days the employee work (in our case since the employee join excluding weekend)" -> This implies numerator is Business Days.
-            // If we divide Business Days by 365, the accrual will be slow. Standard practice might be BusinessDays / 260 * 20.
-            // However, let's implement the user's formula strictly as interpreted or standard? 
-            // "days the employee work... excluding weekend" -> Numerator = Business Days.
-            // Use 260 (5 days * 52 weeks) as the denominator for a "full work year" to make the math comparable to "20 days per year".
-
-            const accrued = (daysWorked / 260) * 20;
-            setTotalPTO(Math.floor(accrued));
+    const fetchPTOBalance = async () => {
+        try {
+            const response = await fetch(`http://localhost:8081/associates/${userData.id}/pto-balance`);
+            if (response.ok) {
+                const data = await response.json();
+                setPtoData(data);
+            }
+        } catch (error) {
+            console.error('Failed to fetch PTO balance', error);
         }
-    }, [userData]);
-
-    const usedPTO = myRequests
-        .filter(req => req.status === "Approved")
-        .reduce((total, req) => {
-            return total + getBusinessDatesCount(req.start, req.end);
-        }, 0);
+    };
 
     useEffect(() => {
-        if (userData && userData.id) {
+        if (userData) {
             fetchRequests();
+            fetchPTOBalance();
+            fetchHolidays();
         }
     }, [userData]);
+
+    const fetchHolidays = async () => {
+        try {
+            const currentYear = new Date().getFullYear();
+            const response = await fetch(`${getApiDomain()}/holidays?year=${currentYear}`);
+            if (response.ok) {
+                const data = await response.json();
+                const formattedHolidays = data.map(holiday => ({
+                    title: holiday.name,
+                    allDay: true,
+                    start: new Date(holiday.date),
+                    end: new Date(holiday.date),
+                    type: "holiday"
+                }));
+                setHolidays(formattedHolidays);
+            }
+        } catch (error) {
+            console.error('Failed to fetch holidays', error);
+        }
+    };
 
     const fetchRequests = async () => {
         try {
             const response = await fetch(`http://localhost:8081/time-off?associate_id=${userData.id}`);
             if (response.ok) {
                 const data = await response.json();
-                const formatted = data.map(req => ({
-                    ...req,
-                    title: "PTO: " + req.reason,
-                    start: new Date(req.start_date),
-                    end: new Date(req.end_date),
-                    type: "request"
-                }));
+                const formatted = data.map(req => {
+                    const parseLocal = (iso) => {
+                        const datePart = iso.split('T')[0];
+                        const [y, m, d] = datePart.split('-').map(Number);
+                        return new Date(y, m - 1, d);
+                    };
+                    const start = parseLocal(req.start_date);
+                    const end = parseLocal(req.end_date);
+
+                    const calendarEnd = new Date(end);
+                    calendarEnd.setDate(calendarEnd.getDate() + 1);
+
+                    return {
+                        ...req,
+                        title: "PTO: " + req.reason,
+                        start: start,
+                        end: calendarEnd,
+                        originalEnd: end,
+                        type: "request"
+                    };
+                });
                 setMyRequests(formatted);
             }
         } catch (error) {
@@ -140,17 +116,30 @@ const EmployeeTimeOff = () => {
         setTabValue(newValue);
     };
 
-    const handleRequestSubmit = async () => {
+    const handleSubmitRequest = async () => {
         if (!newRequest.start || !newRequest.end || !userData) return;
 
-        try {
-            const payload = {
-                associate_id: userData.id,
-                start_date: new Date(newRequest.start).toISOString(),
-                end_date: new Date(newRequest.end).toISOString(),
-                reason: newRequest.reason
-            };
+        const startDate = new Date(newRequest.start);
+        const endDate = new Date(newRequest.end);
+        const requestedDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
 
+        if (ptoData && requestedDays > ptoData.pto_remaining) {
+            const proceed = window.confirm(
+                `Warning: You are requesting ${requestedDays} days, but only have ${ptoData.pto_remaining.toFixed(1)} days remaining.\n\n` +
+                `This request exceeds your available PTO balance.\n\n` +
+                `Do you want to submit anyway? (Requires manager approval)`
+            );
+            if (!proceed) return;
+        }
+
+        const payload = {
+            associate_id: userData.id,
+            start_date: newRequest.start,
+            end_date: newRequest.end,
+            reason: newRequest.reason,
+        };
+
+        try {
             const response = await fetch("http://localhost:8081/time-off", {
                 method: "POST",
                 headers: {
@@ -162,7 +151,8 @@ const EmployeeTimeOff = () => {
             if (response.ok) {
                 setNewRequest({ start: "", end: "", reason: "" });
                 fetchRequests();
-                setTabValue(0); // Switch to calendar view
+                fetchPTOBalance();
+                setTabValue(0);
             }
         } catch (error) {
             console.error("Failed to submit request", error);
@@ -190,30 +180,11 @@ const EmployeeTimeOff = () => {
 
     return (
         <Container maxWidth="xl">
-            <Typography variant="h4" sx={{ mb: 5 }}>
+            <Typography variant="h4" sx={{ mb: 3 }}>
                 My Time Off
             </Typography>
 
-            <Grid container spacing={3} sx={{ mb: 5 }}>
-                <Grid item xs={12} sm={4}>
-                    <Card sx={{ p: 3, textAlign: 'center', color: 'primary.main' }}>
-                        <Typography variant="h3">{totalPTO}</Typography>
-                        <Typography variant="subtitle1" sx={{ color: 'text.secondary' }}>Total PTO Days</Typography>
-                    </Card>
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                    <Card sx={{ p: 3, textAlign: 'center', color: 'success.main' }}>
-                        <Typography variant="h3">{totalPTO - usedPTO}</Typography>
-                        <Typography variant="subtitle1" sx={{ color: 'text.secondary' }}>Available Days</Typography>
-                    </Card>
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                    <Card sx={{ p: 3, textAlign: 'center', color: 'warning.main' }}>
-                        <Typography variant="h3">{usedPTO}</Typography>
-                        <Typography variant="subtitle1" sx={{ color: 'text.secondary' }}>Used Days</Typography>
-                    </Card>
-                </Grid>
-            </Grid>
+            <PTOBalance associateId={userData?.id} />
 
             <Card>
                 <Tabs value={tabValue} onChange={handleTabChange} sx={{ px: 2, bgcolor: 'background.neutral' }}>
@@ -226,7 +197,7 @@ const EmployeeTimeOff = () => {
                         <div style={{ height: 500 }}>
                             <Calendar
                                 localizer={localizer}
-                                events={[...federalHolidays, ...myRequests]}
+                                events={[...holidays, ...myRequests]}
                                 startAccessor="start"
                                 endAccessor="end"
                                 style={{ height: 500 }}
@@ -236,60 +207,35 @@ const EmployeeTimeOff = () => {
                     )}
 
                     {tabValue === 1 && (
-                        <Grid container spacing={3}>
-                            <Grid item xs={12} md={4}>
-                                <Typography variant="h6" gutterBottom>New Request</Typography>
-                                <TextField
-                                    fullWidth
-                                    label="Start Date"
-                                    type="date"
-                                    InputLabelProps={{ shrink: true }}
-                                    sx={{ mb: 2 }}
-                                    value={newRequest.start}
-                                    onChange={(e) => setNewRequest({ ...newRequest, start: e.target.value })}
-                                />
-                                <TextField
-                                    fullWidth
-                                    label="End Date"
-                                    type="date"
-                                    InputLabelProps={{ shrink: true }}
-                                    sx={{ mb: 2 }}
-                                    value={newRequest.end}
-                                    onChange={(e) => setNewRequest({ ...newRequest, end: e.target.value })}
-                                />
-                                <TextField
-                                    fullWidth
-                                    label="Reason"
-                                    sx={{ mb: 2 }}
-                                    value={newRequest.reason}
-                                    onChange={(e) => setNewRequest({ ...newRequest, reason: e.target.value })}
-                                />
-                                <Button variant="contained" size="large" onClick={handleRequestSubmit}>Submit Request</Button>
-                            </Grid>
-                            <Grid item xs={12} md={8}>
-                                <Typography variant="h6" gutterBottom>My Request History</Typography>
-                                <TableContainer component={Paper}>
-                                    <Table>
-                                        <TableHead>
-                                            <TableRow>
-                                                <TableCell>Dates</TableCell>
-                                                <TableCell>Reason</TableCell>
-                                                <TableCell>Status</TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {myRequests.map(req => (
-                                                <TableRow key={req.id}>
-                                                    <TableCell>{format(req.start, 'MM/dd/yyyy')} - {format(req.end, 'MM/dd/yyyy')}</TableCell>
-                                                    <TableCell>{req.reason}</TableCell>
-                                                    <TableCell sx={{ color: req.status === 'Approved' ? 'green' : req.status === 'Rejected' ? 'red' : 'orange' }}>{req.status}</TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
-                            </Grid>
-                        </Grid>
+                        <Box>
+                            <Typography variant="h6" gutterBottom>Request Time Off</Typography>
+                            <TextField
+                                fullWidth
+                                label="Start Date"
+                                type="date"
+                                InputLabelProps={{ shrink: true }}
+                                sx={{ mb: 2 }}
+                                value={newRequest.start}
+                                onChange={(e) => setNewRequest({ ...newRequest, start: e.target.value })}
+                            />
+                            <TextField
+                                fullWidth
+                                label="End Date"
+                                type="date"
+                                InputLabelProps={{ shrink: true }}
+                                sx={{ mb: 2 }}
+                                value={newRequest.end}
+                                onChange={(e) => setNewRequest({ ...newRequest, end: e.target.value })}
+                            />
+                            <TextField
+                                fullWidth
+                                label="Reason"
+                                sx={{ mb: 2 }}
+                                value={newRequest.reason}
+                                onChange={(e) => setNewRequest({ ...newRequest, reason: e.target.value })}
+                            />
+                            <Button variant="contained" size="large" onClick={handleSubmitRequest}>Submit Request</Button>
+                        </Box>
                     )}
                 </Box>
             </Card>

@@ -27,6 +27,8 @@ import {
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import { useAuth } from "../../utils/context/AuthContext";
+import PTOBalance from "../../components/TimeOff/PTOBalance";
+import { getApiDomain } from '../../utils/getApiDomain';
 
 const locales = {
     "en-US": enUS,
@@ -40,53 +42,65 @@ const localizer = dateFnsLocalizer({
     locales,
 });
 
-const federalHolidays = [
-    {
-        title: "New Year's Day",
-        allDay: true,
-        start: new Date(2025, 0, 1),
-        end: new Date(2025, 0, 1),
-        type: "holiday"
-    },
-    {
-        title: "Independence Day",
-        allDay: true,
-        start: new Date(2025, 6, 4),
-        end: new Date(2025, 6, 4),
-        type: "holiday"
-    },
-    {
-        title: "Christmas Day",
-        allDay: true,
-        start: new Date(2025, 11, 25),
-        end: new Date(2025, 11, 25),
-        type: "holiday"
-    },
-];
-
 const HRTimeOff = () => {
-    const { userData } = useAuth();
+    const { userData, isAdmin } = useAuth();
     const [tabValue, setTabValue] = useState(0);
     const [requests, setRequests] = useState([]);
-    const [newRequest, setNewRequest] = useState({ start: "", end: "", reason: "" });
+    const [newRequest, setNewRequest] = useState({ associate_id: "", start: "", end: "", reason: "" });
+    const [holidays, setHolidays] = useState([]);
 
     useEffect(() => {
         fetchRequests();
+        fetchHolidays();
     }, []);
+
+    const fetchHolidays = async () => {
+        try {
+            const domain = getApiDomain();
+            const response = await fetch(`${domain}/holidays`);
+            if (response.ok) {
+                const data = await response.json();
+                const formattedHolidays = data.map(holiday => ({
+                    title: holiday.name,
+                    allDay: true,
+                    start: new Date(holiday.date),
+                    end: new Date(holiday.date),
+                    type: "holiday"
+                }));
+                setHolidays(formattedHolidays);
+            }
+        } catch (error) {
+            console.error("Failed to fetch holidays", error);
+        }
+    };
 
     const fetchRequests = async () => {
         try {
             const response = await fetch("http://localhost:8081/time-off");
             if (response.ok) {
                 const data = await response.json();
-                const formatted = data.map(req => ({
-                    ...req,
-                    title: `${req.employee_name} - ${req.reason}`,
-                    employee: req.employee_name,
-                    start: new Date(req.start_date),
-                    end: new Date(req.end_date),
-                    type: "request"
-                }));
+                const formatted = data.map(req => {
+                    const parseLocal = (iso) => {
+                        const datePart = iso.split('T')[0];
+                        const [y, m, d] = datePart.split('-').map(Number);
+                        return new Date(y, m - 1, d);
+                    };
+                    const start = parseLocal(req.start_date);
+                    const end = parseLocal(req.end_date);
+                    // Add 1 day to end date for RBC exclusive rule
+                    const calendarEnd = new Date(end);
+                    calendarEnd.setDate(calendarEnd.getDate() + 1);
+
+                    return {
+                        ...req,
+                        title: `${req.employee_name} - ${req.reason}`,
+                        employee: req.employee_name,
+                        start: start,
+                        end: calendarEnd,
+                        originalEnd: end,
+                        type: "request"
+                    };
+                });
                 setRequests(formatted);
             }
         } catch (error) {
@@ -133,7 +147,7 @@ const HRTimeOff = () => {
                 start_date: new Date(newRequest.start).toISOString(),
                 end_date: new Date(newRequest.end).toISOString(),
                 reason: newRequest.reason,
-                status: "Approved" // CEO/HR requests are auto-approved
+                status: "Approved"
             };
 
             const response = await fetch("http://localhost:8081/time-off", {
@@ -147,14 +161,14 @@ const HRTimeOff = () => {
             if (response.ok) {
                 setNewRequest({ start: "", end: "", reason: "" });
                 fetchRequests();
-                setTabValue(0); // Switch to calendar view
+                setTabValue(0);
             }
         } catch (error) {
             console.error("Failed to submit request", error);
         }
     };
 
-    const events = [...federalHolidays, ...requests.filter(r => r.status === "Approved")];
+    const events = [...holidays, ...requests.filter(r => r.status === "Approved")];
 
     const eventStyleGetter = (event) => {
         let backgroundColor = "#3174ad";
@@ -175,14 +189,15 @@ const HRTimeOff = () => {
 
     return (
         <Container maxWidth="xl">
-            <Typography variant="h4" sx={{ mb: 5 }}>
-                Time Off Management
+            <Typography variant="h4" sx={{ mb: 3 }}>
+                Team Time Off
             </Typography>
+
+            <PTOBalance associateId={userData?.id} />
 
             <Card sx={{ mb: 5 }}>
                 <Tabs value={tabValue} onChange={handleTabChange} sx={{ px: 2, bgcolor: 'background.neutral' }}>
                     <Tab label="Calendar View" />
-                    <Tab label="Requests List" />
                     <Tab label="Request Time Off" />
                 </Tabs>
 
@@ -201,51 +216,6 @@ const HRTimeOff = () => {
                     )}
 
                     {tabValue === 1 && (
-                        <TableContainer component={Paper}>
-                            <Table>
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell>Employee</TableCell>
-                                        <TableCell>Start Date</TableCell>
-                                        <TableCell>End Date</TableCell>
-                                        <TableCell>Status</TableCell>
-                                        <TableCell>Actions</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {requests.map((req) => (
-                                        <TableRow key={req.id}>
-                                            <TableCell>{req.employee}</TableCell>
-                                            <TableCell>{format(req.start, 'PP')}</TableCell>
-                                            <TableCell>{format(req.end, 'PP')}</TableCell>
-                                            <TableCell
-                                                sx={{
-                                                    color: req.status === 'Approved' ? 'green' : req.status === 'Rejected' ? 'red' : 'orange',
-                                                    fontWeight: 'bold'
-                                                }}
-                                            >
-                                                {req.status}
-                                            </TableCell>
-                                            <TableCell>
-                                                {req.status === 'Pending' && (
-                                                    <>
-                                                        <IconButton color="success" onClick={() => handleApprove(req.id)}>
-                                                            <CheckIcon />
-                                                        </IconButton>
-                                                        <IconButton color="error" onClick={() => handleReject(req.id)}>
-                                                            <CloseIcon />
-                                                        </IconButton>
-                                                    </>
-                                                )}
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
-                    )}
-
-                    {tabValue === 2 && (
                         <Grid container spacing={3}>
                             <Grid item xs={12}>
                                 <Typography variant="h6" gutterBottom>

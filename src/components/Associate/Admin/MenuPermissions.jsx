@@ -26,14 +26,24 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 
 const MENU_ITEMS = [
-    "dashboard",
-    "tasks",
-    "time off",
-    "thanks",
-    "hierarchy",
-    "associates",
-    "admin",
-    "my team"
+    "Dashboard",
+    "Associates",
+    "All Associates",
+    "New Associate",
+    "My Team",
+    "Time Entry",
+    "My Entry",
+    "Time Entry Approvals",
+    "Time Off",
+    "My Requests",
+    "Time Off Approvals",
+    "Tasks",
+    "Hierarchy",
+    "Thanks",
+    "All Thanks",
+    "Give Thanks",
+    "Admin",
+    "Database"
 ];
 
 const PERMISSION_TYPES = [

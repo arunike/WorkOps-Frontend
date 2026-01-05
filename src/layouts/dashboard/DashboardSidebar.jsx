@@ -68,7 +68,7 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
       (p) => p.menu_item.toLowerCase() === menuItem.toLowerCase()
     );
 
-    if (itemPermissions.length === 0) return false;
+    if (itemPermissions.length === 0) return true;
 
     const hasAccess = itemPermissions.some((perm) => {
       if (perm.permission_type === "everyone") return true;
@@ -90,9 +90,29 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
     return hasAccess;
   };
 
-  const filteredConfig = sidebarConfig.filter((item) => {
-    return hasPermission(item.title);
-  });
+  const filteredConfig = sidebarConfig.reduce((acc, item) => {
+    // Check permission for the parent item
+    const hasParentPermission = hasPermission(item.title);
+
+    if (hasParentPermission) {
+      if (item.children) {
+        // If parent has children, filter them as well
+        const filteredChildren = item.children.filter(child => hasPermission(child.title));
+
+        // Only include parent if it has allowed children (or if logic allows empty parents, but usually we hide empty parents)
+        // However, some parents might be just headers. Let's assume we include valid children.
+        // If filteredChildren is empty but parent is allowed, it might look empty. 
+        // Better UX: Show parent only if it has children remaining.
+        if (filteredChildren.length > 0) {
+          acc.push({ ...item, children: filteredChildren });
+        }
+      } else {
+        // Item has no children and is permitted
+        acc.push(item);
+      }
+    }
+    return acc;
+  }, []);
 
   const renderContent = (
     <Scrollbar
@@ -112,15 +132,6 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
       </Box>
 
       <NavSection navConfig={filteredConfig} />
-
-      <Box sx={{ flexGrow: 1 }}></Box>
-      <Box>
-        <Grid container justifyContent="center" sx={{ pb: 2 }}>
-          <Typography variant="h7" color="lightGrey">
-            Version 0.78.1
-          </Typography>
-        </Grid>
-      </Box>
     </Scrollbar>
   );
 

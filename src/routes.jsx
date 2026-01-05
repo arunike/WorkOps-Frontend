@@ -20,6 +20,9 @@ import TimeOff from "./pages/TimeOff/TimeOff";
 import Thanks from "./pages/Thanks/Thanks";
 import GiveThanks from "./components/Thanks/GiveThanks";
 import Hierarchy from "./pages/Hierarchy/Hierarchy";
+import TimeEntry from "./pages/TimeEntry/TimeEntry";
+import Approvals from "./pages/Approvals/Approvals";
+import TimeOffApprovals from "./pages/Approvals/TimeOffApprovals";
 
 export default function Router() {
   const { currentUser, isAdmin } = useAuth();
@@ -59,7 +62,19 @@ export default function Router() {
             </PrivateRoute>
           ),
         },
-
+        { path: "timeentry", element: <TimeEntry /> },
+        {
+          path: "timeoff/approvals",
+          element: <TimeOffApprovals />
+        },
+        {
+          path: "approvals",
+          element: (
+            <PrivateRoute role="Standard">
+              <Approvals />
+            </PrivateRoute>
+          )
+        },
       ],
     },
     {

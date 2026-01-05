@@ -13,16 +13,16 @@ const getIcon = (name) => <Icon icon={name} width={22} height={22} />;
 
 const sidebarConfig = [
   {
-    title: "dashboard",
+    title: "Dashboard",
     path: "/home",
     icon: getIcon(pieChart2Fill),
   },
   {
-    title: "associates",
+    title: "Associates",
     icon: getIcon(peopleFill),
     children: [
       {
-        title: "all associates",
+        title: "All Associates",
         path: "/associates/",
       },
       {
@@ -32,19 +32,42 @@ const sidebarConfig = [
     ],
   },
   {
-    title: "Tasks",
-    path: "/tasks",
-    icon: getIcon(clipboardTaskListLtr20Filled),
-  },
-  {
-    title: "Time Off",
-    path: "/timeoff",
-    icon: getIcon(umbrellaBeach),
-  },
-  {
     title: "My Team",
     path: "/myteam",
     icon: getIcon(peopleFill),
+  },
+  {
+    title: "Time Entry",
+    icon: getIcon(clipboardTaskListLtr20Filled),
+    children: [
+      {
+        title: 'My Entry',
+        path: '/timeentry'
+      },
+      {
+        title: 'Time Entry Approvals',
+        path: '/approvals'
+      }
+    ]
+  },
+  {
+    title: "Time Off",
+    icon: getIcon(umbrellaBeach),
+    children: [
+      {
+        title: "My Requests",
+        path: "/timeoff",
+      },
+      {
+        title: "Time Off Approvals",
+        path: "/timeoff/approvals",
+      }
+    ]
+  },
+  {
+    title: "Tasks",
+    path: "/tasks",
+    icon: getIcon(clipboardTaskListLtr20Filled),
   },
   {
     title: "Hierarchy",
@@ -57,17 +80,17 @@ const sidebarConfig = [
     icon: getIcon(awardIcon),
     children: [
       {
-        title: "all thanks",
+        title: "All Thanks",
         path: "/thanks",
       },
       {
-        title: "Give thanks",
+        title: "Give Thanks",
         path: "/thanks/givethanks",
       },
     ],
   },
   {
-    title: "admin",
+    title: "Admin",
     path: "/admin",
     icon: getIcon(settingsFill),
     children: [

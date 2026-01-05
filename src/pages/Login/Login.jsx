@@ -111,7 +111,7 @@ const Login = () => {
                           rowGap={1}
                         >
                           <Grid item xs={12} xl={12}>
-                            <Logo sx={{ width: 200, pb: 2 }} />
+                            <Logo sx={{ width: 200, height: 'auto', pb: 2 }} />
                           </Grid>
 
                           <Field
@@ -206,7 +206,7 @@ const Login = () => {
                         direction="column"
                       >
                         <Grid item xs={12} xl={12}>
-                          <Logo sx={{ width: 200, pb: 2 }} />
+                          <Logo sx={{ width: 200, height: 'auto', pb: 2 }} />
                         </Grid>
                         <Grid item xs={12} sm={12} lg={12}>
                           <Grid item sx={{ pb: 2 }}>
