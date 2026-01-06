@@ -9,6 +9,7 @@ import { MHidden } from "../../components/@material-extend";
 import Logo from "../../components/Logo";
 import sidebarConfig from "./SidebarConfig";
 import { useAuth } from "../../utils/context/AuthContext";
+import { api } from "../../utils/api";
 
 const DRAWER_WIDTH = 280;
 
@@ -44,21 +45,43 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
   );
 
   const [menuPermissions, setMenuPermissions] = useState([]);
+  const [orderedConfig, setOrderedConfig] = useState([]);
 
   useEffect(() => {
-    const fetchMenuPermissions = async () => {
+    const fetchSettings = async () => {
       try {
-        const response = await fetch("http://localhost:8081/menu-permissions");
-        if (response.ok) {
-          const data = await response.json();
-          setMenuPermissions(data);
+        const [permissionsData, orderData] = await Promise.all([
+          api("/menu-permissions"),
+          api("/admin/sidebar-order")
+        ]);
+
+        setMenuPermissions(permissionsData || []);
+
+        if (orderData && Array.isArray(orderData) && orderData.length > 0) {
+          const reordered = [];
+          // Add items in order
+          orderData.forEach(title => {
+            const found = sidebarConfig.find(item => item.title === title);
+            if (found) reordered.push(found);
+          });
+          // Add any missing items (newly added to code but not in saved order)
+          sidebarConfig.forEach(item => {
+            if (!orderData.includes(item.title)) {
+              reordered.push(item);
+            }
+          });
+          setOrderedConfig(reordered);
+        } else {
+          setOrderedConfig(sidebarConfig);
         }
+
       } catch (error) {
-        console.error("Failed to fetch menu permissions", error);
+        console.error("Failed to fetch settings", error);
+        setOrderedConfig(sidebarConfig);
       }
     };
 
-    fetchMenuPermissions();
+    fetchSettings();
   }, []);
 
   const hasPermission = (menuItem) => {
@@ -90,7 +113,7 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
     return hasAccess;
   };
 
-  const filteredConfig = sidebarConfig.reduce((acc, item) => {
+  const filteredConfig = orderedConfig.reduce((acc, item) => {
     // Check permission for the parent item
     const hasParentPermission = hasPermission(item.title);
 

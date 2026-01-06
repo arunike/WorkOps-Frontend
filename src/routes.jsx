@@ -11,6 +11,7 @@ import Associates from "./pages/Associates/Associates";
 import NewAssociate from "./components/Associate/newAssociate";
 import AssociateDetails from "./pages/AssociateDetails/AssociateDetails";
 import Admin from "./pages/Admin/Admin";
+import SidebarSettings from "./components/Associate/Admin/SidebarSettings";
 import MyTasks from "./pages/Tasks/Tasks";
 import MyTeam from "./pages/MyTeam/MyTeam";
 import Page403 from "./pages/Page403/Page403";
@@ -59,6 +60,14 @@ export default function Router() {
           element: (
             <PrivateRoute role="Admin">
               <Admin />
+            </PrivateRoute>
+          ),
+        },
+        {
+          path: "admin/sidebar-settings",
+          element: (
+            <PrivateRoute role="Admin">
+              <SidebarSettings />
             </PrivateRoute>
           ),
         },

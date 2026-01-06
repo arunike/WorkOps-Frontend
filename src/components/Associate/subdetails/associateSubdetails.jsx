@@ -106,117 +106,119 @@ const AssociateSubdetails = () => {
               justifyContent="space-around"
               alignItems="flex-start"
             >
-              <Grid item xs={12} sx={{ pb: 1 }}>
+              {associateData.Title !== "CEO" && (
+                <Grid item xs={12} sx={{ pb: 1 }}>
 
-                <Grid
-                  container
-                  columnSpacing={2}
-                  direction="rows"
-                  justifyContent="flex-start"
-                  alignItems="center"
-                >
-                  <Grid item xs={12} sx={{ pr: 2, pb: 1, pl: 4 }}>
-                    <Typography variant="overline" sx={{ pl: 1, pt: 1 }}>
-                      Manager
-                      {isAdmin && managerDetails && !isEditingManager && (
-                        <Button
-                          size="small"
-                          onClick={() => setIsEditingManager(true)}
-                          sx={{ ml: 1, minWidth: 'auto', p: 0.5 }}
-                        >
-                          Change
-                        </Button>
-                      )}
-                      {isEditingManager && (
-                        <Button
-                          size="small"
-                          color="error"
-                          onClick={() => setIsEditingManager(false)}
-                          sx={{ ml: 1, minWidth: 'auto', p: 0.5 }}
-                        >
-                          Cancel
-                        </Button>
-                      )}
-                    </Typography>
-                  </Grid>
-
-                  {/* Show Manager Details if exists and not editing */}
-                  {managerDetails && !isEditingManager ? (
-                    <Grid
-                      container
-                      direction="rows"
-                      justifyContent="space-around"
-                      alignItems="center"
-                    >
-                      <Grid item xs={2} sx={{ pr: 2, pl: 1 }}>
-                        {(() => {
-                          const mgrName = `${managerDetails.FirstName} ${managerDetails.LastName}`;
-                          const avatarProps = managerDetails.profilePicture
-                            ? { src: managerDetails.profilePicture }
-                            : stringAvatar(mgrName);
-                          return (
-                            <Avatar
-                              {...avatarProps}
-                              alt={mgrName}
-                              sx={{ ...avatarProps.sx, width: 60, height: 60 }}
-                            />
-                          );
-                        })()}
-                      </Grid>
-                      <Grid item xs={8} sx={{ pr: 2, pl: 3 }}>
-                        <Typography variant="h6">
-                          {managerDetails.FirstName} {managerDetails.LastName}
-                        </Typography>
-                        <Typography variant="h7">
-                          {managerDetails.Title}
-                        </Typography>
-                      </Grid>
-                    </Grid>
-                  ) : (
-                    // Show Editor or Empty State
-                    <>
-                      {(isAdmin) ? (
-                        <Grid item xs={12} sx={{ pt: 1, pl: 1, pb: 1 }}>
-                          <TextField
-                            select
-                            sx={{ width: "200px" }}
-                            name="manager_id"
+                  <Grid
+                    container
+                    columnSpacing={2}
+                    direction="rows"
+                    justifyContent="flex-start"
+                    alignItems="center"
+                  >
+                    <Grid item xs={12} sx={{ pr: 2, pb: 1, pl: 4 }}>
+                      <Typography variant="overline" sx={{ pl: 1, pt: 1 }}>
+                        Manager
+                        {isAdmin && managerDetails && !isEditingManager && (
+                          <Button
                             size="small"
-                            label="Choose Manager"
-                            value={managerDetails ? managerDetails.id : ''}
-                            onChange={handleUpdateManager}
+                            onClick={() => setIsEditingManager(true)}
+                            sx={{ ml: 1, minWidth: 'auto', p: 0.5 }}
                           >
-                            {associates
-                              .sort((a, b) => (a.FirstName > b.FirstName ? 1 : -1))
-                              .map((associate, index) => (
-                                <MenuItem
-                                  key={associate.id}
-                                  value={associate.id}
-                                >
-                                  {associate.FirstName} {associate.LastName}
-                                </MenuItem>
-                              ))}
-                          </TextField>
+                            Change
+                          </Button>
+                        )}
+                        {isEditingManager && (
+                          <Button
+                            size="small"
+                            color="error"
+                            onClick={() => setIsEditingManager(false)}
+                            sx={{ ml: 1, minWidth: 'auto', p: 0.5 }}
+                          >
+                            Cancel
+                          </Button>
+                        )}
+                      </Typography>
+                    </Grid>
+
+                    {/* Show Manager Details if exists and not editing */}
+                    {managerDetails && !isEditingManager ? (
+                      <Grid
+                        container
+                        direction="rows"
+                        justifyContent="space-around"
+                        alignItems="center"
+                      >
+                        <Grid item xs={2} sx={{ pr: 2, pl: 1 }}>
+                          {(() => {
+                            const mgrName = `${managerDetails.FirstName} ${managerDetails.LastName}`;
+                            const avatarProps = managerDetails.profilePicture
+                              ? { src: managerDetails.profilePicture }
+                              : stringAvatar(mgrName);
+                            return (
+                              <Avatar
+                                {...avatarProps}
+                                alt={mgrName}
+                                sx={{ ...avatarProps.sx, width: 60, height: 60 }}
+                              />
+                            );
+                          })()}
                         </Grid>
-                      ) : (
-                        <Grid item xs={12} sx={{ pt: 1, pl: 4, pb: 1 }}>
-                          <Typography variant="body2" color="text.secondary">
-                            No manager assigned.
+                        <Grid item xs={8} sx={{ pr: 2, pl: 3 }}>
+                          <Typography variant="h6">
+                            {managerDetails.FirstName} {managerDetails.LastName}
+                          </Typography>
+                          <Typography variant="h7">
+                            {managerDetails.Title}
                           </Typography>
                         </Grid>
-                      )}
-                    </>
-                  )}
-                </Grid>
+                      </Grid>
+                    ) : (
+                      // Show Editor or Empty State
+                      <>
+                        {(isAdmin) ? (
+                          <Grid item xs={12} sx={{ pt: 1, pl: 1, pb: 1 }}>
+                            <TextField
+                              select
+                              sx={{ width: "200px" }}
+                              name="manager_id"
+                              size="small"
+                              label="Choose Manager"
+                              value={managerDetails ? managerDetails.id : ''}
+                              onChange={handleUpdateManager}
+                            >
+                              {associates
+                                .sort((a, b) => (a.FirstName > b.FirstName ? 1 : -1))
+                                .map((associate, index) => (
+                                  <MenuItem
+                                    key={associate.id}
+                                    value={associate.id}
+                                  >
+                                    {associate.FirstName} {associate.LastName}
+                                  </MenuItem>
+                                ))}
+                            </TextField>
+                          </Grid>
+                        ) : (
+                          <Grid item xs={12} sx={{ pt: 1, pl: 4, pb: 1 }}>
+                            <Typography variant="body2" color="text.secondary">
+                              No manager assigned.
+                            </Typography>
+                          </Grid>
+                        )}
+                      </>
+                    )}
+                  </Grid>
 
-              </Grid>
+                </Grid>
+              )}
               <Grid item xs={12} sx={{ pt: 5, pl: 1, pb: 1 }}>
                 <Typography variant="overline">Team Members</Typography>
                 <Grid container alignItems="flex-start">
                   <Grid item>
                     <AvatarGroup sx={{ pb: 1, pt: 2 }} max={6}>
                       {TeamMembers.map((FilteredMember) => {
-                        if (!(FilteredMember.id === associateData.id)) {
+                        if (String(FilteredMember.id) !== String(associateData.id)) {
                           const memberName = `${FilteredMember.FirstName} ${FilteredMember.LastName}`;
                           const memberProps = FilteredMember.profilePicture
                             ? { src: FilteredMember.profilePicture }

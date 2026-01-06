@@ -98,6 +98,10 @@ const sidebarConfig = [
         title: "Database",
         path: "/admin/database",
       },
+      {
+        title: "Sidebar Settings",
+        path: "/admin/sidebar-settings",
+      },
     ],
   },
 ];

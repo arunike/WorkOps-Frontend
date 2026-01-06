@@ -29,12 +29,9 @@ const TimeOffApprovals = () => {
         try {
             if (!currentUser || !currentUser.id) return;
 
-            const response = await fetch(`${getApiDomain()}/time-off?approver_id=${currentUser.id}`);
-            if (response.ok) {
-                const data = await response.json();
-                const pending = (data || []).filter(req => req.status === 'Pending');
-                setRequests(pending);
-            }
+            const data = await api(`/time-off?approver_id=${currentUser.id}`);
+            const pending = (data || []).filter(req => req.status === 'Pending');
+            setRequests(pending);
         } catch (error) {
             console.error("Failed to fetch pending time off requests", error);
         }
@@ -46,21 +43,14 @@ const TimeOffApprovals = () => {
 
     const handleAction = async (id, status) => {
         try {
-            const response = await fetch(`${getApiDomain()}/time-off/${id}/status`, {
+            await api(`/time-off/${id}/status`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ status }),
+                body: { status },
             });
 
-            if (response.ok) {
-                setMessage({ type: 'success', text: `Request ${status} successfully` });
-                fetchPendingRequests();
-                setTimeout(() => setMessage({ type: '', text: '' }), 3000);
-            } else {
-                setMessage({ type: 'error', text: 'Failed to update request' });
-            }
+            setMessage({ type: 'success', text: `Request ${status} successfully` });
+            fetchPendingRequests();
+            setTimeout(() => setMessage({ type: '', text: '' }), 3000);
         } catch (error) {
             setMessage({ type: 'error', text: 'An error occurred' });
         }

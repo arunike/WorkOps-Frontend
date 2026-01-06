@@ -26,11 +26,8 @@ const Approvals = () => {
 
     const fetchPendingRequests = async () => {
         try {
-            const response = await fetch(`${getApiDomain()}/time-entry?status=Pending`);
-            if (response.ok) {
-                const data = await response.json();
-                setRequests(data || []);
-            }
+            const data = await api("/time-entry?status=Pending");
+            setRequests(data || []);
         } catch (error) {
             console.error("Failed to fetch pending requests", error);
         }
@@ -47,21 +44,14 @@ const Approvals = () => {
 
     const handleAction = async (id, status) => {
         try {
-            const response = await fetch(`${getApiDomain()}/time-entry/${id}/status`, {
+            await api(`/time-entry/${id}/status`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ status }),
+                body: { status },
             });
 
-            if (response.ok) {
-                setMessage({ type: 'success', text: `Request ${status} successfully` });
-                fetchPendingRequests();
-                setTimeout(() => setMessage({ type: '', text: '' }), 3000);
-            } else {
-                setMessage({ type: 'error', text: 'Failed to update request' });
-            }
+            setMessage({ type: 'success', text: `Request ${status} successfully` });
+            fetchPendingRequests();
+            setTimeout(() => setMessage({ type: '', text: '' }), 3000);
         } catch (error) {
             setMessage({ type: 'error', text: 'An error occurred' });
         }

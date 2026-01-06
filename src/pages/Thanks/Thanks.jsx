@@ -15,6 +15,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../../utils/context/AuthContext";
 import ThanksCard from "../../components/Thanks/ThanksCard";
 import Page from "../../components/Page";
+import { api } from "../../utils/api";
 
 const Thanks = () => {
   const { userData } = useAuth();
@@ -25,8 +26,7 @@ const Thanks = () => {
   useEffect(() => {
     const getThanks = async () => {
       try {
-        const response = await fetch("http://localhost:8081/thanks");
-        const data = await response.json();
+        const data = await api("/thanks");
 
         if (data) {
           const mappedThanks = data.map(t => ({

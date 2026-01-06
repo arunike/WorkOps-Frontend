@@ -22,7 +22,7 @@ import {
     MenuItem,
 } from '@mui/material';
 import { Delete as DeleteIcon, Edit as EditIcon, Add as AddIcon } from '@mui/icons-material';
-import { getApiDomain } from '../../../utils/getApiDomain';
+import { api } from '../../../utils/api';
 import { useAuth } from '../../../utils/context/AuthContext';
 
 const HolidayManagement = () => {
@@ -45,11 +45,8 @@ const HolidayManagement = () => {
 
     const fetchHolidays = async () => {
         try {
-            const response = await fetch(`${getApiDomain()}/holidays?year=${selectedYear}`);
-            if (response.ok) {
-                const data = await response.json();
-                setHolidays(data || []);
-            }
+            const data = await api(`/holidays?year=${selectedYear}`);
+            setHolidays(data || []);
         } catch (error) {
             console.error('Failed to fetch holidays', error);
         }
@@ -90,31 +87,25 @@ const HolidayManagement = () => {
             };
 
             const url = editingHoliday
-                ? `${getApiDomain()}/holidays/${editingHoliday.id}`
-                : `${getApiDomain()}/holidays`;
+                ? `/holidays/${editingHoliday.id}`
+                : `/holidays`;
 
-            const response = await fetch(url, {
+            await api(url, {
                 method: editingHoliday ? 'PUT' : 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
                     'X-User-ID': userData?.id?.toString() || '',
                 },
-                body: JSON.stringify(payload),
+                body: payload,
             });
 
-            if (response.ok) {
-                setMessage({
-                    type: 'success',
-                    text: `Holiday ${editingHoliday ? 'updated' : 'created'} successfully!`,
-                });
-                fetchHolidays();
-                handleCloseDialog();
-            } else {
-                const error = await response.json();
-                setMessage({ type: 'error', text: error.error || 'Failed to save holiday' });
-            }
+            setMessage({
+                type: 'success',
+                text: `Holiday ${editingHoliday ? 'updated' : 'created'} successfully!`,
+            });
+            fetchHolidays();
+            handleCloseDialog();
         } catch (error) {
-            setMessage({ type: 'error', text: 'Failed to save holiday' });
+            setMessage({ type: 'error', text: error.message || 'Failed to save holiday' });
         }
     };
 
@@ -122,21 +113,17 @@ const HolidayManagement = () => {
         if (!window.confirm('Are you sure you want to delete this holiday?')) return;
 
         try {
-            const response = await fetch(`${getApiDomain()}/holidays/${id}`, {
+            await api(`/holidays/${id}`, {
                 method: 'DELETE',
                 headers: {
                     'X-User-ID': userData?.id?.toString() || '',
                 },
             });
 
-            if (response.ok) {
-                setMessage({ type: 'success', text: 'Holiday deleted successfully!' });
-                fetchHolidays();
-            } else {
-                setMessage({ type: 'error', text: 'Failed to delete holiday' });
-            }
+            setMessage({ type: 'success', text: 'Holiday deleted successfully!' });
+            fetchHolidays();
         } catch (error) {
-            setMessage({ type: 'error', text: 'Failed to delete holiday' });
+            setMessage({ type: 'error', text: error.message || 'Failed to delete holiday' });
         }
     };
 

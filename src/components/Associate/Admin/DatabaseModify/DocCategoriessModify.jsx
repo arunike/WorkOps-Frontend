@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Box, Button, Grid, List, ListItem, TextField, Alert } from "@mui/material";
+import { api } from "../../../../utils/api";
 
 const DocCategoriesModify = () => {
   const [allCategories, setAllCategories] = useState([]);
@@ -8,11 +9,8 @@ const DocCategoriesModify = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch("http://localhost:8081/document-categories");
-      if (response.ok) {
-        const data = await response.json();
-        setAllCategories(data);
-      }
+      const data = await api("/document-categories");
+      setAllCategories(data);
     } catch (err) {
       console.error(err);
     }
@@ -25,15 +23,12 @@ const DocCategoriesModify = () => {
   const handleAdd = async () => {
     if (!newCat) return;
     try {
-      const response = await fetch("http://localhost:8081/document-categories", {
+      await api("/document-categories", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newCat }),
+        body: { name: newCat },
       });
-      if (response.ok) {
-        setNewCat("");
-        fetchCategories();
-      }
+      setNewCat("");
+      fetchCategories();
     } catch (err) {
       setError("Failed to add category");
     }
@@ -64,8 +59,10 @@ const DocCategoriesModify = () => {
                     disabled={!id}
                     onClick={async () => {
                       if (id && window.confirm(`Delete ${name}?`)) {
-                        await fetch(`http://localhost:8081/document-categories/${id}`, { method: 'DELETE' });
-                        fetchCategories();
+                        try {
+                          await api(`/document-categories/${id}`, { method: 'DELETE' });
+                          fetchCategories();
+                        } catch (e) { console.error("Failed to delete", e); }
                       }
                     }}
                   >

@@ -1,13 +1,11 @@
+import { api } from "../../utils/api";
+
 export async function CancelTask(userID, taskPath) {
   try {
-    const response = await fetch(`http://localhost:8081/tasks/${taskPath}`, {
+    await api(`/tasks/${taskPath}`, {
       method: "DELETE",
     });
-    if (response.ok) {
-      window.location.reload();
-    } else {
-      console.error("Failed to delete task");
-    }
+    window.location.reload();
   } catch (error) {
     console.error("Error deleting task:", error);
   }
@@ -17,16 +15,9 @@ export function DeleteToApprove(id, taskPath, cancel) {
 }
 
 export async function ActOnTask(task, requesterDetails, userID) {
-  // Logic to update the actual data based on TaskName
-  // task.TargetValue is the ID of the associate to update
-  // task.Value is the new value
-  // task.TaskName determines what to update
-
   try {
     // 1. Fetch current associate details
-    const response = await fetch(`http://localhost:8081/associates/${task.TargetValue}`);
-    if (!response.ok) throw new Error("Failed to fetch associate");
-    const associate = await response.json();
+    const associate = await api(`/associates/${task.TargetValue}`);
 
     // 2. Modify based on task type
     if (task.TaskName === "Salary Increase") {
@@ -37,15 +28,10 @@ export async function ActOnTask(task, requesterDetails, userID) {
     // Add other cases here if needed
 
     // 3. Save updated associate
-    const updateResponse = await fetch(`http://localhost:8081/associates/${task.TargetValue}`, {
+    await api(`/associates/${task.TargetValue}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(associate),
+      body: associate,
     });
-
-    if (!updateResponse.ok) {
-      console.error("Failed to update associate data");
-    }
 
   } catch (error) {
     console.error("Error enacting task:", error);
@@ -114,19 +100,11 @@ export async function ApproveTask(
   }
 
   try {
-    const response = await fetch(`http://localhost:8081/tasks/${task.id}`, {
+    await api(`/tasks/${task.id}`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(updatedTask),
+      body: updatedTask,
     });
-
-    if (response.ok) {
-      window.location.reload();
-    } else {
-      console.error("Failed to update task");
-    }
+    window.location.reload();
   } catch (error) {
     console.error("Error updating task:", error);
   }

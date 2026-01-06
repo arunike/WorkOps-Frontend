@@ -2,7 +2,7 @@ import AssociateHeader from "../../components/Associate/associateHeader";
 import { useEffect, useState, React, useContext } from "react";
 import { useParams } from "react-router-dom";
 import { transform, isEqual, isObject } from "lodash";
-import { Grid, Snackbar, Alert } from "@mui/material";
+import { Grid, Snackbar, Alert, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import {
   associateContext,
@@ -10,6 +10,7 @@ import {
   updatedAssociateContext,
   updateAssociatesContext,
 } from "../../utils/context/contexts";
+import { api } from "../../utils/api";
 import { useAuth } from "../../utils/context/AuthContext";
 import Page from "../../components/Page";
 const AssociateDetails = () => {
@@ -32,27 +33,24 @@ const AssociateDetails = () => {
       setUpdatedAssociate({ ...associateFromServer, id: id });
     };
     getAssociate();
-  }, []);
+  }, [id]);
 
   const fetchDetails = async () => {
     setLoadingProgress(true);
     try {
-      const response = await fetch(`http://localhost:8081/associates/${id}`);
-      if (response.ok) {
-        const data = await response.json();
-        if (data.StartDate) {
-          const d = new Date(data.StartDate);
-          data.StartDate = { toDate: () => d };
-        }
-        if (data.DOB) {
-          const d = new Date(data.DOB);
-          data.DOB = { toDate: () => d };
-        }
-        setLoadingProgress(false);
-        return data;
+      const data = await api(`/associates/${id}`) || {};
+      if (data.StartDate) {
+        const d = new Date(data.StartDate);
+        data.StartDate = { toDate: () => d };
       }
+      if (data.DOB) {
+        const d = new Date(data.DOB);
+        data.DOB = { toDate: () => d };
+      }
+      setLoadingProgress(false);
+      return data;
     } catch (e) {
-      console.error(e);
+      console.error("FETCH DETAILS FAILED:", e);
     }
     setLoadingProgress(false);
     return {};
@@ -111,32 +109,28 @@ const AssociateDetails = () => {
         payload.Salary = parseInt(payload.Salary, 10);
       }
 
-      const response = await fetch(`http://localhost:8081/associates/${associateData.id}`, {
+      await api(`/associates/${associateData.id}`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
           'X-User-ID': userData?.id?.toString() || ''
         },
-        body: JSON.stringify(payload)
+        body: payload
       });
 
-      if (response.ok) {
-        setUpdateAssociates((updateAssociates) => updateAssociates + 1);
-        setAssociateData(updatedAssociate);
+      setUpdateAssociates((updateAssociates) => updateAssociates + 1);
+      setAssociateData(updatedAssociate);
 
-        if (userData && userData.id === updatedAssociate.id) {
-          const updatedUser = { ...userData, ...updatedAssociate };
+      if (userData && userData.id === updatedAssociate.id) {
+        const updatedUser = { ...userData, ...updatedAssociate };
 
-          localStorage.setItem("user", JSON.stringify(updatedUser));
-          setCurrentUser(updatedUser);
-        }
-
-        setSeverity("success");
-        setAlertMessage("Successfully updated!");
-        setAlert(true);
-      } else {
-        throw new Error("Failed to update");
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+        setCurrentUser(updatedUser);
       }
+
+      setSeverity("success");
+      setAlertMessage("Successfully updated!");
+      setAlert(true);
+
     } catch (error) {
       setAlertMessage(error.message);
       setSeverity("error");
@@ -188,6 +182,7 @@ const AssociateDetails = () => {
           </Page>
           {associateData && (
             <AssociateHeader
+              key={associateData.id}
               handleBack={handleBack}
               updateBackendAndState={updateBackendAndState}
             />

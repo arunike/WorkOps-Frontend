@@ -55,7 +55,12 @@ const TimeEntry = () => {
     const fetchEntries = async () => {
         if (!currentUser) return;
         try {
-            const response = await fetch(`${getApiDomain()}/time-entry?associate_id=${currentUser.id}`);
+            const response = await fetch(`${getApiDomain()}/time-entry?associate_id=${currentUser.id}`, {
+                headers: {
+                    'Cache-Control': 'no-cache',
+                    'Pragma': 'no-cache'
+                }
+            });
             if (response.ok) {
                 const data = await response.json();
                 setEntries(data || []);

@@ -15,6 +15,7 @@ import ReactCanvasConfetti from "react-canvas-confetti";
 import { useAuth } from "../../utils/context/AuthContext";
 import "./ThanksCardElements/cardMedia.css";
 import Page from "../../components/Page";
+import { api } from "../../utils/api";
 
 const GiveThanks = () => {
   const { userData } = useAuth();
@@ -32,11 +33,8 @@ const GiveThanks = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch("http://localhost:8081/thanks-categories");
-        if (response.ok) {
-          const data = await response.json();
-          setCategories(data || []);
-        }
+        const data = await api("/thanks-categories");
+        setCategories(data || []);
       } catch (error) {
         console.error("Failed to fetch thanks categories", error);
       }
@@ -123,27 +121,20 @@ const GiveThanks = () => {
     };
 
     try {
-      const response = await fetch("http://localhost:8081/thanks", {
+      await api("/thanks", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
+        body: payload,
       });
 
-      if (response.ok) {
-        console.log("Thanks submitted successfully");
-        setGiveThanksData({
-          Comment: undefined,
-          To: undefined,
-          From: "",
-          Timestamp: new Date(),
-          Category: undefined,
-        });
-        navigate("/thanks");
-      } else {
-        console.error("Failed to submit thanks");
-      }
+      console.log("Thanks submitted successfully");
+      setGiveThanksData({
+        Comment: undefined,
+        To: undefined,
+        From: "",
+        Timestamp: new Date(),
+        Category: undefined,
+      });
+      navigate("/thanks");
     } catch (error) {
       console.error("Error submitting thanks:", error);
     }

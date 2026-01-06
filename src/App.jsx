@@ -14,6 +14,7 @@ import {
 } from "./utils/context/contexts";
 import React, { useEffect, useState, useContext } from "react";
 import { AuthProvider, useAuth } from "./utils/context/AuthContext";
+import { api } from "./utils/api";
 
 function App() {
   const [updateAssociates, setUpdateAssociates] = useState(1);
@@ -47,8 +48,7 @@ function App() {
   document.title = "WorkOps";
   const getAssociates = async () => {
     try {
-      const response = await fetch("http://localhost:8081/associates");
-      const data = await response.json();
+      const data = await api("/associates");
       const transformed = (Array.isArray(data) ? data : []).map((user) => ({
         ...user,
         id: user.id || user.ID,
@@ -79,9 +79,8 @@ function App() {
   };
   const getOffices = async () => {
     try {
-      const response = await fetch("http://localhost:8081/offices");
-      const data = await response.json();
-      setOffices(data);
+      const data = await api("/offices");
+      setOffices(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Failed to fetch offices:", error);
       setOffices([]);
@@ -89,9 +88,8 @@ function App() {
   };
   const getDepartments = async () => {
     try {
-      const response = await fetch("http://localhost:8081/departments");
-      const data = await response.json();
-      setDepartments(data);
+      const data = await api("/departments");
+      setDepartments(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Failed to fetch departments:", error);
       setDepartments([]);
@@ -102,13 +100,12 @@ function App() {
     try {
       if (!userData || !userData.id) return; // Ensure userData is available
 
-      const response = await fetch("http://localhost:8081/tasks");
-      const data = await response.json();
+      const data = await api("/tasks");
 
       const myTasks = {};
       const toApprove = {};
 
-      data.forEach((task, index) => {
+      (Array.isArray(data) ? data : []).forEach((task, index) => {
         // Add to main tasks list if user is requester OR approver
         // This allows "Complete" column to show tasks I approved/rejected
         if (task.requester === userData.id || (task.approvers && task.approvers[userData.id])) {

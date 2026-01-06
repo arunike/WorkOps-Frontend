@@ -58,7 +58,7 @@ export default function DepartmentGraph() {
       setLoading(false);
     };
     getDepartment();
-  }, [allDepartments]);
+  }, [allDepartments, associates]);
 
   const fetchDetails = (dep) => {
     const filtered = associates.filter(

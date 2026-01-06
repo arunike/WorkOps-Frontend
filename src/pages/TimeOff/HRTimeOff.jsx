@@ -28,7 +28,7 @@ import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import { useAuth } from "../../utils/context/AuthContext";
 import PTOBalance from "../../components/TimeOff/PTOBalance";
-import { getApiDomain } from '../../utils/getApiDomain';
+import { api } from "../../utils/api";
 
 const locales = {
     "en-US": enUS,
@@ -56,19 +56,15 @@ const HRTimeOff = () => {
 
     const fetchHolidays = async () => {
         try {
-            const domain = getApiDomain();
-            const response = await fetch(`${domain}/holidays`);
-            if (response.ok) {
-                const data = await response.json();
-                const formattedHolidays = data.map(holiday => ({
-                    title: holiday.name,
-                    allDay: true,
-                    start: new Date(holiday.date),
-                    end: new Date(holiday.date),
-                    type: "holiday"
-                }));
-                setHolidays(formattedHolidays);
-            }
+            const data = await api("/holidays");
+            const formattedHolidays = (data || []).map(holiday => ({
+                title: holiday.name,
+                allDay: true,
+                start: new Date(holiday.date),
+                end: new Date(holiday.date),
+                type: "holiday"
+            }));
+            setHolidays(formattedHolidays);
         } catch (error) {
             console.error("Failed to fetch holidays", error);
         }
@@ -76,33 +72,30 @@ const HRTimeOff = () => {
 
     const fetchRequests = async () => {
         try {
-            const response = await fetch("http://localhost:8081/time-off");
-            if (response.ok) {
-                const data = await response.json();
-                const formatted = data.map(req => {
-                    const parseLocal = (iso) => {
-                        const datePart = iso.split('T')[0];
-                        const [y, m, d] = datePart.split('-').map(Number);
-                        return new Date(y, m - 1, d);
-                    };
-                    const start = parseLocal(req.start_date);
-                    const end = parseLocal(req.end_date);
-                    // Add 1 day to end date for RBC exclusive rule
-                    const calendarEnd = new Date(end);
-                    calendarEnd.setDate(calendarEnd.getDate() + 1);
+            const data = await api("/time-off");
+            const formatted = (data || []).map(req => {
+                const parseLocal = (iso) => {
+                    const datePart = iso.split('T')[0];
+                    const [y, m, d] = datePart.split('-').map(Number);
+                    return new Date(y, m - 1, d);
+                };
+                const start = parseLocal(req.start_date);
+                const end = parseLocal(req.end_date);
+                // Add 1 day to end date for RBC exclusive rule
+                const calendarEnd = new Date(end);
+                calendarEnd.setDate(calendarEnd.getDate() + 1);
 
-                    return {
-                        ...req,
-                        title: `${req.employee_name} - ${req.reason}`,
-                        employee: req.employee_name,
-                        start: start,
-                        end: calendarEnd,
-                        originalEnd: end,
-                        type: "request"
-                    };
-                });
-                setRequests(formatted);
-            }
+                return {
+                    ...req,
+                    title: `${req.employee_name} - ${req.reason}`,
+                    employee: req.employee_name,
+                    start: start,
+                    end: calendarEnd,
+                    originalEnd: end,
+                    type: "request"
+                };
+            });
+            setRequests(formatted);
         } catch (error) {
             console.error("Failed to fetch requests", error);
         }
@@ -114,17 +107,11 @@ const HRTimeOff = () => {
 
     const updateStatus = async (id, status) => {
         try {
-            const response = await fetch(`http://localhost:8081/time-off/${id}/status`, {
+            await api(`/time-off/${id}/status`, {
                 method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ status }),
+                body: { status },
             });
-
-            if (response.ok) {
-                fetchRequests();
-            }
+            fetchRequests();
         } catch (error) {
             console.error("Failed to update status", error);
         }
@@ -150,19 +137,14 @@ const HRTimeOff = () => {
                 status: "Approved"
             };
 
-            const response = await fetch("http://localhost:8081/time-off", {
+            await api("/time-off", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(payload),
+                body: payload,
             });
 
-            if (response.ok) {
-                setNewRequest({ start: "", end: "", reason: "" });
-                fetchRequests();
-                setTabValue(0);
-            }
+            setNewRequest({ start: "", end: "", reason: "" });
+            fetchRequests();
+            setTabValue(0);
         } catch (error) {
             console.error("Failed to submit request", error);
         }

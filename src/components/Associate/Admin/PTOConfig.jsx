@@ -8,7 +8,7 @@ import {
     Alert,
     Paper
 } from '@mui/material';
-import { getApiDomain } from '../../../utils/getApiDomain';
+import { api } from '../../../utils/api';
 
 const PTOConfig = () => {
     const [ptoDaysPerYear, setPtoDaysPerYear] = useState('15');
@@ -21,20 +21,13 @@ const PTOConfig = () => {
 
     const fetchSettings = async () => {
         try {
-            const [daysResponse, methodResponse] = await Promise.all([
-                fetch(`${getApiDomain()}/settings/pto_days_per_year`),
-                fetch(`${getApiDomain()}/settings/pto_accrual_method`)
+            const [daysData, methodData] = await Promise.all([
+                api('/settings/pto_days_per_year'),
+                api('/settings/pto_accrual_method')
             ]);
 
-            if (daysResponse.ok) {
-                const daysData = await daysResponse.json();
-                if (daysData.value) setPtoDaysPerYear(daysData.value);
-            }
-
-            if (methodResponse.ok) {
-                const methodData = await methodResponse.json();
-                if (methodData.value) setAccrualMethod(methodData.value);
-            }
+            if (daysData && daysData.value) setPtoDaysPerYear(daysData.value);
+            if (methodData && methodData.value) setAccrualMethod(methodData.value);
         } catch (error) {
             console.error('Failed to fetch PTO settings', error);
         }
@@ -54,12 +47,9 @@ const PTOConfig = () => {
             ];
 
             for (const update of updates) {
-                await fetch(`${getApiDomain()}/settings`, {
+                await api('/settings', {
                     method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(update),
+                    body: update,
                 });
             }
 

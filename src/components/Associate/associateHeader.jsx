@@ -345,7 +345,7 @@ const AssociateHeader = ({ handleBack, updateBackendAndState }) => {
                                       "success"
                                     }
                                   >
-                                    {sentenceCase(associateData.EmplStatus)}
+                                    {associateData.EmplStatus ? sentenceCase(associateData.EmplStatus) : "Unknown"}
                                   </Label>
                                 </Grid>
                               </Grid>
@@ -519,9 +519,11 @@ const AssociateHeader = ({ handleBack, updateBackendAndState }) => {
 
         <Grid item xs={12} md={6} lg={3}>
           <Grid container direction="column" rowSpacing={2}>
-            <Grid item>
-              <Card>{associateData && <AssociateSubdetails />}</Card>
-            </Grid>
+            {associateData.Title !== "CEO" && (
+              <Grid item>
+                <Card>{associateData && <AssociateSubdetails />}</Card>
+              </Grid>
+            )}
           </Grid>
         </Grid>
         <Grid item xs={12} md={6} lg={9}>

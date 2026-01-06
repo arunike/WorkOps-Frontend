@@ -13,6 +13,7 @@ import AverageSalary from "../../components/Graphs/AverageSalary";
 import Page from "../../components/Page";
 import { useAuth } from "../../utils/context/AuthContext";
 import MaleVSFemaleGraph from "../../components/Graphs/MaleVSFemale";
+import { api } from "../../utils/api";
 
 const Home = () => {
   const { currentUser } = useAuth();
@@ -25,11 +26,8 @@ const Home = () => {
 
   const fetchPermissions = async () => {
     try {
-      const response = await fetch("http://localhost:8081/menu-permissions");
-      if (response.ok) {
-        const data = await response.json();
-        setPermissions(data);
-      }
+      const data = await api("/menu-permissions");
+      setPermissions(data);
     } catch (error) {
       console.error("Failed to fetch permissions", error);
     } finally {

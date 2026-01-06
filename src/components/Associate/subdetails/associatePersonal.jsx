@@ -357,7 +357,11 @@ const AssociateInfo = ({ updateBackendAndState }) => {
                   size="small"
                   label="Date of Birth"
                   name="DOB"
-                  value={updatedAssociate.DOB.toDate()}
+                  value={
+                    updatedAssociate.DOB && updatedAssociate.DOB.toDate
+                      ? updatedAssociate.DOB.toDate()
+                      : updatedAssociate.DOB || null
+                  }
                   inputFormat="dd-MM-yyyy"
                   onChange={(newDate) => {
                     setUpdatedAssociate({
@@ -385,7 +389,12 @@ const AssociateInfo = ({ updateBackendAndState }) => {
                   disabled={personalDisabled || !canEditRestrictedFields}
                   label="Start Date"
                   name="StartDate"
-                  value={updatedAssociate.StartDate.toDate()}
+                  value={
+                    updatedAssociate.StartDate &&
+                      updatedAssociate.StartDate.toDate
+                      ? updatedAssociate.StartDate.toDate()
+                      : updatedAssociate.StartDate || null
+                  }
                   inputFormat="dd-MM-yyyy"
                   onChange={(newDate) => {
                     setUpdatedAssociate({
