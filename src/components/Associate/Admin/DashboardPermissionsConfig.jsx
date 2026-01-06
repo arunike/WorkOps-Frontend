@@ -19,9 +19,11 @@ import {
     MenuItem,
     Typography,
     Chip,
-    Box
+    Box,
+    Grid,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
+import { api } from "../../../utils/api";
 
 const DASHBOARD_WIDGETS = [
     "total employed",
@@ -41,28 +43,43 @@ const PERMISSION_TYPES = [
 
 const DashboardPermissionsConfig = () => {
     const [permissions, setPermissions] = useState([]);
+    const [widgetOrder, setWidgetOrder] = useState(DASHBOARD_WIDGETS);
     const [openDialog, setOpenDialog] = useState(false);
     const [newPermission, setNewPermission] = useState({
-        menu_item: "", // Reuse menu_item field for widget name
+        menu_item: "",
         permission_type: "",
         permission_value: ""
     });
 
     useEffect(() => {
-        fetchPermissions();
+        fetchData();
     }, []);
 
-    const fetchPermissions = async () => {
+    const fetchData = async () => {
         try {
-            const response = await fetch("http://localhost:8081/menu-permissions");
-            if (response.ok) {
-                const data = await response.json();
-                // Filter only for dashboard widgets
-                const dashboardPerms = data.filter(p => DASHBOARD_WIDGETS.includes(p.menu_item));
+            const [permData, orderData] = await Promise.all([
+                api("/menu-permissions"),
+                api("/admin/dashboard-order")
+            ]);
+
+            if (permData) {
+                const dashboardPerms = permData.filter(p => DASHBOARD_WIDGETS.includes(p.menu_item));
                 setPermissions(dashboardPerms);
             }
+
+            if (orderData && Array.isArray(orderData) && orderData.length > 0) {
+                const merged = [...orderData];
+                DASHBOARD_WIDGETS.forEach(w => {
+                    if (!merged.includes(w)) merged.push(w);
+                });
+                const final = merged.filter(w => DASHBOARD_WIDGETS.includes(w));
+                setWidgetOrder(final);
+            } else {
+                setWidgetOrder(DASHBOARD_WIDGETS);
+            }
+
         } catch (error) {
-            console.error("Failed to fetch permissions", error);
+            console.error("Failed to fetch settings", error);
         }
     };
 
@@ -74,19 +91,14 @@ const DashboardPermissionsConfig = () => {
                 permission_value: newPermission.permission_type === "everyone" ? null : newPermission.permission_value
             };
 
-            const response = await fetch("http://localhost:8081/menu-permissions", {
+            await api("/menu-permissions", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(payload),
+                body: payload,
             });
 
-            if (response.ok) {
-                fetchPermissions();
-                setOpenDialog(false);
-                setNewPermission({ menu_item: "", permission_type: "", permission_value: "" });
-            }
+            fetchData();
+            setOpenDialog(false);
+            setNewPermission({ menu_item: "", permission_type: "", permission_value: "" });
         } catch (error) {
             console.error("Failed to create permission", error);
         }
@@ -94,19 +106,13 @@ const DashboardPermissionsConfig = () => {
 
     const handleDeletePermission = async (id) => {
         try {
-            const response = await fetch(`http://localhost:8081/menu-permissions/${id}`, {
-                method: "DELETE",
-            });
-
-            if (response.ok) {
-                fetchPermissions();
-            }
+            await api(`/menu-permissions/${id}`, { method: "DELETE" });
+            fetchData();
         } catch (error) {
             console.error("Failed to delete permission", error);
         }
     };
 
-    // Group permissions by widget
     const groupedPermissions = permissions.reduce((acc, perm) => {
         if (!acc[perm.menu_item]) {
             acc[perm.menu_item] = [];
@@ -118,63 +124,72 @@ const DashboardPermissionsConfig = () => {
     return (
         <Card>
             <CardHeader
-                title="Dashboard Permissions"
-                action={
-                    <Button
-                        variant="contained"
-                        startIcon={<AddIcon />}
-                        onClick={() => setOpenDialog(true)}
-                    >
-                        Add Rule
-                    </Button>
-                }
+                title="Dashboard Configuration"
+                subheader="Manage visibility rules for dashboard widgets"
             />
             <CardContent>
-                <TableContainer component={Paper}>
-                    <Table>
-                        <TableHead>
-                            <TableRow>
-                                <TableCell><strong>Widget</strong></TableCell>
-                                <TableCell><strong>Visible To</strong></TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {Object.entries(groupedPermissions).map(([widget, perms]) => (
-                                <TableRow key={widget}>
-                                    <TableCell>
-                                        <Typography variant="body1" sx={{ textTransform: "capitalize" }}>
-                                            {widget}
-                                        </Typography>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                                            {perms.map((perm) => (
-                                                <Chip
-                                                    key={perm.id}
-                                                    label={
-                                                        perm.permission_type === "everyone"
-                                                            ? "Everyone"
-                                                            : `${perm.permission_type}: ${perm.permission_value}`
-                                                    }
-                                                    onDelete={() => handleDeletePermission(perm.id)}
-                                                    color={perm.permission_type === "everyone" ? "primary" : "default"}
-                                                    size="small"
-                                                />
-                                            ))}
-                                        </Box>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                            {Object.keys(groupedPermissions).length === 0 && (
-                                <TableRow>
-                                    <TableCell colSpan={2} align="center">
-                                        No specific rules set. All widgets are visible to everyone by default.
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
+                <Grid container spacing={3}>
+                    {/* Full Width: Permissions */}
+                    <Grid item xs={12}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                            <Typography variant="h6">Visibility Rules</Typography>
+                            <Button
+                                variant="outlined"
+                                startIcon={<AddIcon />}
+                                size="small"
+                                onClick={() => setOpenDialog(true)}
+                            >
+                                Add Rule
+                            </Button>
+                        </Box>
+
+                        <TableContainer component={Paper} variant="outlined">
+                            <Table size="small">
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell><strong>Widget</strong></TableCell>
+                                        <TableCell><strong>Visible To</strong></TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {widgetOrder.map((widget) => {
+                                        const perms = groupedPermissions[widget] || [];
+                                        return (
+                                            <TableRow key={widget}>
+                                                <TableCell>
+                                                    <Typography variant="body2" sx={{ textTransform: "capitalize" }}>
+                                                        {widget}
+                                                    </Typography>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                                                        {perms.length === 0 ? (
+                                                            <Chip label="Everyone" size="small" variant="outlined" />
+                                                        ) : (
+                                                            perms.map((perm) => (
+                                                                <Chip
+                                                                    key={perm.id}
+                                                                    label={
+                                                                        perm.permission_type === "everyone"
+                                                                            ? "Everyone"
+                                                                            : `${perm.permission_type}: ${perm.permission_value}`
+                                                                    }
+                                                                    onDelete={() => handleDeletePermission(perm.id)}
+                                                                    color={perm.permission_type === "everyone" ? "primary" : "default"}
+                                                                    size="small"
+                                                                />
+                                                            ))
+                                                        )}
+                                                    </Box>
+                                                </TableCell>
+                                            </TableRow>
+                                        );
+                                    })}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    </Grid>
+                </Grid>
             </CardContent>
 
             <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>

@@ -1,6 +1,8 @@
 import { Icon } from "@iconify/react";
 import pieChart2Fill from "@iconify/icons-eva/pie-chart-2-fill";
 import peopleFill from "@iconify/icons-eva/people-fill";
+import personFill from "@iconify/icons-eva/person-fill";
+import layersFill from "@iconify/icons-eva/layers-fill";
 import lockFill from "@iconify/icons-eva/lock-fill";
 import personAddFill from "@iconify/icons-eva/person-add-fill";
 import alertTriangleFill from "@iconify/icons-eva/alert-triangle-fill";
@@ -34,7 +36,7 @@ const sidebarConfig = [
   {
     title: "My Team",
     path: "/myteam",
-    icon: getIcon(peopleFill),
+    icon: getIcon(personFill),
   },
   {
     title: "Time Entry",
@@ -72,7 +74,7 @@ const sidebarConfig = [
   {
     title: "Hierarchy",
     path: "/hierarchy",
-    icon: getIcon(peopleFill),
+    icon: getIcon(layersFill),
   },
   {
     title: "Thanks",

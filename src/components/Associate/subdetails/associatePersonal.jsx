@@ -224,7 +224,7 @@ const AssociateInfo = ({ updateBackendAndState }) => {
             />
           </Grid>
           {allDepartments && (
-            <Grid item sx={8} xm={4} xl={4}>
+            <Grid item xs={12} md={4} xl={4}>
               <TextField
                 select
                 disabled={personalDisabled || !canEditRestrictedFields}
@@ -246,7 +246,7 @@ const AssociateInfo = ({ updateBackendAndState }) => {
             </Grid>
           )}
 
-          <Grid item xs={8} xl={4}>
+          <Grid item xs={12} md={4} xl={4}>
             <TextField
               style={{ width: "100%" }}
               size="small"
@@ -259,7 +259,7 @@ const AssociateInfo = ({ updateBackendAndState }) => {
               sx={DisabledTextBox}
             />
           </Grid>
-          <Grid item xs={7} xl={4}>
+          <Grid item xs={12} md={4} xl={4}>
             <TextField
               size="small"
               disabled={personalDisabled || !canEditRestrictedFields}
