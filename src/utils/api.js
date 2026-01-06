@@ -10,10 +10,25 @@ export const api = async (endpoint, options = {}) => {
     const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
     const url = `${domain}${path}`;
 
+    // Get user from local storage
+    const storedUser = localStorage.getItem("user");
+    let initialHeaders = { ...defaultHeaders };
+
+    if (storedUser) {
+        try {
+            const user = JSON.parse(storedUser);
+            if (user && user.id) {
+                initialHeaders['X-User-ID'] = String(user.id);
+            }
+        } catch (e) {
+            console.error("Failed to parse user from local storage", e);
+        }
+    }
+
     const config = {
         ...options,
         headers: {
-            ...defaultHeaders,
+            ...initialHeaders,
             ...options.headers,
         }
     };
@@ -40,7 +55,6 @@ export const api = async (endpoint, options = {}) => {
         const data = await response.json();
         return data;
     } catch (error) {
-        // If response is not JSON (e.g. empty body 200 OK), return null or text
         return null;
     }
 };

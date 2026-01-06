@@ -18,7 +18,7 @@ import {
 } from '@mui/material';
 import format from 'date-fns/format';
 import { useAuth } from '../../utils/context/AuthContext';
-import { getApiDomain } from '../../utils/getApiDomain';
+import { api } from '../../utils/api';
 
 const TimeOffApprovals = () => {
     const { currentUser } = useAuth();
@@ -29,7 +29,12 @@ const TimeOffApprovals = () => {
         try {
             if (!currentUser || !currentUser.id) return;
 
-            const data = await api(`/time-off?approver_id=${currentUser.id}`);
+            const isSuperAdmin = ['CEO', 'Head of People'].includes(currentUser.Title);
+            const endpoint = isSuperAdmin
+                ? '/time-off'
+                : `/time-off?approver_id=${currentUser.id}`;
+
+            const data = await api(endpoint);
             const pending = (data || []).filter(req => req.status === 'Pending');
             setRequests(pending);
         } catch (error) {

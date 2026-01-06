@@ -127,8 +127,8 @@ const EmployeeTimeOff = () => {
 
         const payload = {
             associate_id: userData.id,
-            start_date: newRequest.start,
-            end_date: newRequest.end,
+            start_date: new Date(newRequest.start).toISOString(),
+            end_date: new Date(newRequest.end).toISOString(),
             reason: newRequest.reason,
         };
 

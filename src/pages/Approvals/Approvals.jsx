@@ -17,7 +17,7 @@ import {
     Alert
 } from '@mui/material';
 import { useAuth } from '../../utils/context/AuthContext';
-import { getApiDomain } from '../../utils/getApiDomain';
+import { api } from '../../utils/api';
 
 const Approvals = () => {
     const { currentUser, isAdmin } = useAuth();
@@ -26,15 +26,24 @@ const Approvals = () => {
 
     const fetchPendingRequests = async () => {
         try {
-            const data = await api("/time-entry?status=Pending");
+            if (!currentUser || !currentUser.id) return;
+
+            const userTitle = currentUser?.Title || currentUser?.title || '';
+            const isSuperAdmin = ['CEO', 'Head of People'].includes(userTitle);
+
+            const endpoint = isSuperAdmin
+                ? "/time-entry?status=Pending"
+                : `/time-entry?status=Pending&manager_id=${currentUser.id}`;
+
+            const data = await api(endpoint);
             setRequests(data || []);
         } catch (error) {
             console.error("Failed to fetch pending requests", error);
         }
     };
 
-    const allowedTitles = ['CEO', 'Head of Product', 'Head of People'];
-    const isAllowed = isAdmin || allowedTitles.includes(currentUser?.title);
+    // Access is now open to all (list will be empty if not a manager)
+    const isAllowed = true;
 
     useEffect(() => {
         if (isAllowed) {
