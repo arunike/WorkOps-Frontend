@@ -12,6 +12,13 @@ import {
     Button,
     TextField,
     Grid,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Paper
 } from "@mui/material";
 import { useAuth } from "../../utils/context/AuthContext";
 import PTOBalance from "../../components/TimeOff/PTOBalance";
@@ -147,6 +154,18 @@ const EmployeeTimeOff = () => {
         }
     };
 
+    const handleWithdraw = async (id) => {
+        if (window.confirm("Are you sure you want to withdraw this request?")) {
+            try {
+                await api(`/time-off/${id}`, { method: 'DELETE' });
+                fetchRequests();
+                fetchPTOBalance();
+            } catch (error) {
+                console.error("Failed to withdraw request", error);
+            }
+        }
+    };
+
     const eventStyleGetter = (event) => {
         let backgroundColor = "#3174ad";
         if (event.type === "holiday") backgroundColor = "#e91e63";
@@ -195,35 +214,116 @@ const EmployeeTimeOff = () => {
                     )}
 
                     {tabValue === 1 && (
-                        <Box>
-                            <Typography variant="h6" gutterBottom>Request Time Off</Typography>
-                            <TextField
-                                fullWidth
-                                label="Start Date"
-                                type="date"
-                                InputLabelProps={{ shrink: true }}
-                                sx={{ mb: 2 }}
-                                value={newRequest.start}
-                                onChange={(e) => setNewRequest({ ...newRequest, start: e.target.value })}
-                            />
-                            <TextField
-                                fullWidth
-                                label="End Date"
-                                type="date"
-                                InputLabelProps={{ shrink: true }}
-                                sx={{ mb: 2 }}
-                                value={newRequest.end}
-                                onChange={(e) => setNewRequest({ ...newRequest, end: e.target.value })}
-                            />
-                            <TextField
-                                fullWidth
-                                label="Reason"
-                                sx={{ mb: 2 }}
-                                value={newRequest.reason}
-                                onChange={(e) => setNewRequest({ ...newRequest, reason: e.target.value })}
-                            />
-                            <Button variant="contained" size="large" onClick={handleSubmitRequest}>Submit Request</Button>
-                        </Box>
+                        <Grid container spacing={3}>
+                            <Grid item xs={12} md={4}>
+                                <Card variant="outlined">
+                                    <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
+                                        <Typography variant="h6">Request Time Off</Typography>
+                                    </Box>
+                                    <Box sx={{ p: 2 }}>
+                                        <Grid container spacing={2}>
+                                            <Grid item xs={12}>
+                                                <TextField
+                                                    fullWidth
+                                                    label="Start Date"
+                                                    type="date"
+                                                    InputLabelProps={{ shrink: true }}
+                                                    value={newRequest.start}
+                                                    onChange={(e) => setNewRequest({ ...newRequest, start: e.target.value })}
+                                                    required
+                                                />
+                                            </Grid>
+                                            <Grid item xs={12}>
+                                                <TextField
+                                                    fullWidth
+                                                    label="End Date"
+                                                    type="date"
+                                                    InputLabelProps={{ shrink: true }}
+                                                    value={newRequest.end}
+                                                    onChange={(e) => setNewRequest({ ...newRequest, end: e.target.value })}
+                                                    required
+                                                />
+                                            </Grid>
+                                            <Grid item xs={12}>
+                                                <TextField
+                                                    fullWidth
+                                                    label="Reason"
+                                                    multiline
+                                                    rows={3}
+                                                    value={newRequest.reason}
+                                                    onChange={(e) => setNewRequest({ ...newRequest, reason: e.target.value })}
+                                                />
+                                            </Grid>
+                                            <Grid item xs={12}>
+                                                <Button
+                                                    fullWidth
+                                                    variant="contained"
+                                                    size="large"
+                                                    onClick={handleSubmitRequest}
+                                                    disabled={!newRequest.start || !newRequest.end}
+                                                >
+                                                    Submit Request
+                                                </Button>
+                                            </Grid>
+                                        </Grid>
+                                    </Box>
+                                </Card>
+                            </Grid>
+
+                            <Grid item xs={12} md={8}>
+                                <Typography variant="h6" gutterBottom>Recent Requests</Typography>
+                                <TableContainer component={Paper} variant="outlined">
+                                    <Table>
+                                        <TableHead>
+                                            <TableRow>
+                                                <TableCell>Start Date</TableCell>
+                                                <TableCell>End Date</TableCell>
+                                                <TableCell>Reason</TableCell>
+                                                <TableCell>Status</TableCell>
+                                                <TableCell>Actions</TableCell>
+                                            </TableRow>
+                                        </TableHead>
+                                        <TableBody>
+                                            {myRequests && myRequests.length > 0 ? myRequests.map((req) => (
+                                                <TableRow key={req.id}>
+                                                    <TableCell>{new Date(req.start).toLocaleDateString()}</TableCell>
+                                                    <TableCell>{new Date(req.originalEnd).toLocaleDateString()}</TableCell>
+                                                    <TableCell>{req.reason}</TableCell>
+                                                    <TableCell>
+                                                        <Typography
+                                                            variant="body2"
+                                                            sx={{
+                                                                color: req.status === 'Approved' ? 'success.main' :
+                                                                    req.status === 'Rejected' ? 'error.main' : 'warning.main',
+                                                                fontWeight: 'bold'
+                                                            }}
+                                                        >
+                                                            {req.status || 'Pending'}
+                                                        </Typography>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {req.status === 'Pending' && (
+                                                            <Button
+                                                                variant="outlined"
+                                                                color="error"
+                                                                size="small"
+                                                                onClick={() => handleWithdraw(req.id)}
+                                                            >
+                                                                Withdraw
+                                                            </Button>
+                                                        )}
+                                                    </TableCell>
+                                                </TableRow>
+                                            )) : (
+                                                <TableRow>
+                                                    <TableCell colSpan={5} align="center">No requests found</TableCell>
+                                                </TableRow>
+                                            )}
+                                        </TableBody>
+                                    </Table>
+                                </TableContainer>
+                            </Grid>
+                        </Grid>
                     )}
                 </Box>
             </Card>

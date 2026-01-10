@@ -28,6 +28,7 @@ import {
 } from '@mui/material';
 import { useAuth } from '../../utils/context/AuthContext';
 import { getApiDomain } from '../../utils/getApiDomain';
+import { api } from '../../utils/api';
 
 const locales = {
     "en-US": enUS,
@@ -123,6 +124,19 @@ const TimeEntry = () => {
             setMessage({ type: 'error', text: 'An error occurred.' });
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleWithdraw = async (id) => {
+        if (window.confirm("Are you sure you want to withdraw this time entry?")) {
+            try {
+                await api(`/time-entry/${id}`, { method: 'DELETE' });
+                setMessage({ type: 'success', text: 'Time entry withdrawn successfully' });
+                fetchEntries();
+            } catch (error) {
+                console.error("Failed to withdraw time entry", error);
+                setMessage({ type: 'error', text: 'Failed to withdraw time entry' });
+            }
         }
     };
 
@@ -249,6 +263,7 @@ const TimeEntry = () => {
                                                 <TableCell>Overtime</TableCell>
                                                 <TableCell>Status</TableCell>
                                                 <TableCell>Comments</TableCell>
+                                                <TableCell>Actions</TableCell>
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
@@ -278,10 +293,22 @@ const TimeEntry = () => {
                                                         </Typography>
                                                     </TableCell>
                                                     <TableCell>{entry.comments || '-'}</TableCell>
+                                                    <TableCell>
+                                                        {entry.status === 'Pending' && (
+                                                            <Button
+                                                                variant="outlined"
+                                                                color="error"
+                                                                size="small"
+                                                                onClick={() => handleWithdraw(entry.id)}
+                                                            >
+                                                                Withdraw
+                                                            </Button>
+                                                        )}
+                                                    </TableCell>
                                                 </TableRow>
                                             )) : (
                                                 <TableRow>
-                                                    <TableCell colSpan={5} align="center">No entries found</TableCell>
+                                                    <TableCell colSpan={6} align="center">No entries found</TableCell>
                                                 </TableRow>
                                             )}
                                         </TableBody>

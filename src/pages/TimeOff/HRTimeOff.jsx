@@ -199,49 +199,100 @@ const HRTimeOff = () => {
 
                     {tabValue === 1 && (
                         <Grid container spacing={3}>
-                            <Grid item xs={12}>
-                                <Typography variant="h6" gutterBottom>
-                                    Request Time Off (Auto-Approved)
-                                </Typography>
+                            <Grid item xs={12} md={4}>
+                                <Card variant="outlined">
+                                    <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
+                                        <Typography variant="h6">Request Time Off (Auto-Approved)</Typography>
+                                    </Box>
+                                    <Box sx={{ p: 2 }}>
+                                        <Grid container spacing={2}>
+                                            <Grid item xs={12}>
+                                                <TextField
+                                                    fullWidth
+                                                    label="Start Date"
+                                                    type="date"
+                                                    value={newRequest.start}
+                                                    onChange={(e) => setNewRequest({ ...newRequest, start: e.target.value })}
+                                                    InputLabelProps={{ shrink: true }}
+                                                />
+                                            </Grid>
+                                            <Grid item xs={12}>
+                                                <TextField
+                                                    fullWidth
+                                                    label="End Date"
+                                                    type="date"
+                                                    value={newRequest.end}
+                                                    onChange={(e) => setNewRequest({ ...newRequest, end: e.target.value })}
+                                                    InputLabelProps={{ shrink: true }}
+                                                />
+                                            </Grid>
+                                            <Grid item xs={12}>
+                                                <TextField
+                                                    fullWidth
+                                                    label="Reason (Optional)"
+                                                    multiline
+                                                    rows={3}
+                                                    value={newRequest.reason}
+                                                    onChange={(e) => setNewRequest({ ...newRequest, reason: e.target.value })}
+                                                />
+                                            </Grid>
+                                            <Grid item xs={12}>
+                                                <Button
+                                                    fullWidth
+                                                    variant="contained"
+                                                    size="large"
+                                                    onClick={handleRequestSubmit}
+                                                    disabled={!newRequest.start || !newRequest.end}
+                                                >
+                                                    Submit Request
+                                                </Button>
+                                            </Grid>
+                                        </Grid>
+                                    </Box>
+                                </Card>
                             </Grid>
-                            <Grid item xs={12} md={6}>
-                                <TextField
-                                    fullWidth
-                                    label="Start Date"
-                                    type="date"
-                                    value={newRequest.start}
-                                    onChange={(e) => setNewRequest({ ...newRequest, start: e.target.value })}
-                                    InputLabelProps={{ shrink: true }}
-                                />
-                            </Grid>
-                            <Grid item xs={12} md={6}>
-                                <TextField
-                                    fullWidth
-                                    label="End Date"
-                                    type="date"
-                                    value={newRequest.end}
-                                    onChange={(e) => setNewRequest({ ...newRequest, end: e.target.value })}
-                                    InputLabelProps={{ shrink: true }}
-                                />
-                            </Grid>
-                            <Grid item xs={12}>
-                                <TextField
-                                    fullWidth
-                                    label="Reason (Optional)"
-                                    multiline
-                                    rows={3}
-                                    value={newRequest.reason}
-                                    onChange={(e) => setNewRequest({ ...newRequest, reason: e.target.value })}
-                                />
-                            </Grid>
-                            <Grid item xs={12}>
-                                <Button
-                                    variant="contained"
-                                    onClick={handleRequestSubmit}
-                                    disabled={!newRequest.start || !newRequest.end}
-                                >
-                                    Submit Request
-                                </Button>
+
+                            <Grid item xs={12} md={8}>
+                                <Typography variant="h6" gutterBottom>Recent Team Requests</Typography>
+                                <TableContainer component={Paper} variant="outlined">
+                                    <Table>
+                                        <TableHead>
+                                            <TableRow>
+                                                <TableCell>Employee</TableCell>
+                                                <TableCell>Start Date</TableCell>
+                                                <TableCell>End Date</TableCell>
+                                                <TableCell>Reason</TableCell>
+                                                <TableCell>Status</TableCell>
+                                            </TableRow>
+                                        </TableHead>
+                                        <TableBody>
+                                            {requests && requests.length > 0 ? requests.slice(0, 10).map((req) => (
+                                                <TableRow key={req.id}>
+                                                    <TableCell>{req.employee}</TableCell>
+                                                    <TableCell>{new Date(req.start).toLocaleDateString()}</TableCell>
+                                                    <TableCell>{new Date(req.originalEnd).toLocaleDateString()}</TableCell>
+                                                    <TableCell>{req.reason}</TableCell>
+                                                    <TableCell>
+                                                        <Typography
+                                                            variant="body2"
+                                                            sx={{
+                                                                color: req.status === 'Approved' ? 'success.main' :
+                                                                    req.status === 'Rejected' ? 'error.main' : 'warning.main',
+                                                                fontWeight: 'bold'
+                                                            }}
+                                                        >
+                                                            {req.status || 'Pending'}
+                                                        </Typography>
+                                                    </TableCell>
+                                                </TableRow>
+                                            )) : (
+                                                <TableRow>
+                                                    <TableCell colSpan={5} align="center">No requests found</TableCell>
+                                                </TableRow>
+                                            )}
+                                        </TableBody>
+                                    </Table>
+                                </TableContainer>
                             </Grid>
                         </Grid>
                     )}
