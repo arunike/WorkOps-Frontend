@@ -12,6 +12,7 @@ A comprehensive Human Resources management system designed to streamline employe
 - [Getting Started](#-getting-started)
 - [Project Structure](#-project-structure)
 - [Configuration](#️-configuration)
+- [Backend](#-backend)
 - [License](#-license)
 - [Author](#-author)
 
@@ -207,6 +208,10 @@ frontend/
 ### API Endpoint
 The frontend connects to the Go backend. By default, it expects the backend at `http://localhost:8081`.
 Admin configuration features (Dashboard visibility, Default passwords, Menu permissions) are available in the **Admin** tab of the application.
+
+## 🔗 Backend
+
+- **Backend API**: [WorkOps API](https://github.com/arunike/WorkOps-API)
 
 ## 📄 License
 
