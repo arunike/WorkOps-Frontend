@@ -11,8 +11,9 @@ A comprehensive Human Resources management system designed to streamline employe
 - [Tech Stack](#-tech-stack)
 - [Getting Started](#-getting-started)
 - [Project Structure](#-project-structure)
-- [Configuration](#-configuration)
-- [Authors](#-authors)
+- [Configuration](#️-configuration)
+- [License](#-license)
+- [Author](#-author)
 
 ## 🌟 Overview
 WorkOps is a modern web application that transforms standard HR tasks into an interactive and data-driven experience. It combines traditional employee management with social recognition features and powerful analytics.
